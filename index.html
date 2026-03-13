@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Painel de Peças</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+body{
+font-family:'Inter',sans-serif;
+margin:0;
+background:#0f0f10;
+color:#fff;
+display:flex;
+}
+
+.sidebar{
+width:220px;
+background:#000;
+height:100vh;
+padding-top:20px;
+border-right:2px solid #e30613;
+}
+
+.sidebar h2{
+padding-left:20px;
+font-size:18px;
+margin-bottom:20px;
+}
+
+.sidebar button{
+display:block;
+width:100%;
+background:none;
+border:none;
+color:#fff;
+padding:15px 20px;
+text-align:left;
+cursor:pointer;
+font-size:15px;
+}
+
+.sidebar button:hover{
+background:#e30613;
+}
+
+.main{
+flex:1;
+padding:30px;
+overflow:auto;
+}
+
+.cards{
+display:flex;
+gap:20px;
+margin-bottom:30px;
+flex-wrap:wrap;
+}
+
+.card{
+background:#18181b;
+padding:24px;
+border-radius:16px;
+flex:1;
+min-width:200px;
+border:1px solid #27272a;
+}
+
+.card span{
+color:#a1a1aa;
+font-size:13px;
+}
+
+.card h2{
+margin:6px 0 0 0;
+font-size:30px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
+}
+
+th,td{
+padding:12px;
+border-bottom:1px solid #27272a;
+}
+
+.section{display:none;}
+.section.active{display:block;}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+<h2>Painel</h2>
+<button onclick="mostrar('pecas')">Dashboard Peças</button>
+<button onclick="mostrar('estoque')">Estoque</button>
+</div>
+
+<div class="main">
+
+<div id="pecas" class="section active">
+<h2>Dashboard Peças</h2>
+
+<div class="cards">
+<div class="card"><span>Total peças</span><h2 id="total">0</h2></div>
+<div class="card"><span>Atrasadas</span><h2 id="atrasadas">0</h2></div>
+<div class="card"><span>No prazo</span><h2 id="prazo">0</h2></div>
+<div class="card"><span>Entregues</span><h2 id="entregues">0</h2></div>
+</div>
+</div>
+
+<div id="estoque" class="section">
+<h2>Estoque</h2>
+
+<div class="cards">
+<div class="card"><span>Total cadastradas</span><h2 id="eTotal">0</h2></div>
+<div class="card"><span>No estoque</span><h2 id="eEstoque">0</h2></div>
+<div class="card"><span>Retiradas</span><h2 id="eRetiradas">0</h2></div>
+</div>
+
+<h3>Estoque atual</h3>
+<table>
+<thead>
+<tr>
+<th>Locação</th>
+<th>Marca</th>
+<th>Modelo</th>
+<th>Peça</th>
+<th>Código</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody id="tEstoque"></tbody>
+</table>
+
+<h3>Histórico de retiradas</h3>
+<table>
+<thead>
+<tr>
+<th>Peça</th>
+<th>Marca</th>
+<th>Modelo</th>
+<th>OS Receptor</th>
+<th>Responsável</th>
+<th>Data retirada</th>
+<th>Locação</th>
+</tr>
+</thead>
+<tbody id="tRetiradas"></tbody>
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+function mostrar(id){
+document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"))
+document.getElementById(id).classList.add("active")
+}
+
+const estoqueCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTzcuYj91nTsIkmp86gpPBW1REkCitAvBtiLVB4RQvRniDi_cj5Pmd4mcylqNiipw/pub?gid=1283911979&single=true&output=csv";
+
+function carregarEstoque(){
+
+Papa.parse(estoqueCSV,{
+download:true,
+header:true,
+skipEmptyLines:true,
+
+complete:function(res){
+
+let dados=res.data
+
+let total=0
+let estoque=0
+let retiradas=0
+
+let tE=document.getElementById("tEstoque")
+let tR=document.getElementById("tRetiradas")
+
+tE.innerHTML=""
+tR.innerHTML=""
+
+dados.forEach(r=>{
+
+total++
+
+let retirada=r["DATA RETIRADA"]
+
+if(!retirada){
+
+estoque++
+
+tE.innerHTML+=`<tr>
+<td>${r["NUMERAÇÃO"]}</td>
+<td>${r["MARCA"]}</td>
+<td>${r["MODELO"]}</td>
+<td>${r["PEÇA"]}</td>
+<td>${r["CODIGO"]}</td>
+<td>${r["VALOR"]}</td>
+</tr>`
+
+}else{
+
+retiradas++
+
+tR.innerHTML+=`<tr>
+<td>${r["PEÇA"]}</td>
+<td>${r["MARCA"]}</td>
+<td>${r["MODELO"]}</td>
+<td>${r["OS RECEPTOR"]}</td>
+<td>${r["RESPONSAVEL"]}</td>
+<td>${r["DATA RETIRADA"]}</td>
+<td>${r["NUMERAÇÃO"]}</td>
+</tr>`
+
+}
+
+})
+
+document.getElementById("eTotal").innerText=total
+document.getElementById("eEstoque").innerText=estoque
+document.getElementById("eRetiradas").innerText=retiradas
+
+}
+
+})
+
+}
+
+carregarEstoque()
+
+</script>
+
+</body>
+</html>
