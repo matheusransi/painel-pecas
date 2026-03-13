@@ -33,6 +33,10 @@ messages:[
 
 const data = await response.json();
 
+if(!data.choices){
+return res.status(500).json({erro:JSON.stringify(data)});
+}
+
 res.status(200).json({
 resposta:data.choices[0].message.content
 });
