@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Estoque</title>
+
+<style>
+body{
+  background:#0b0b0b;
+  color:#fff;
+  font-family:Arial;
+  margin:0;
+}
+
+.header{
+  padding:20px;
+  border-bottom:2px solid red;
+  display:flex;
+  align-items:center;
+}
+
+.menu-btn{
+  font-size:24px;
+  cursor:pointer;
+  margin-right:15px;
+}
+
+.sidebar{
+  position:fixed;
+  left:-250px;
+  top:0;
+  width:250px;
+  height:100%;
+  background:#111;
+  transition:0.3s;
+  padding-top:20px;
+}
+
+.sidebar a{
+  display:block;
+  padding:15px;
+  color:#fff;
+  text-decoration:none;
+}
+
+.sidebar a:hover{
+  background:red;
+}
+
+.container{
+  padding:20px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th, td{
+  padding:10px;
+  border-bottom:1px solid #333;
+  text-align:left;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar" id="sidebar">
+  <a href="index.html">Controle de Peças</a>
+  <a href="estoque.html">Estoque</a>
+  <a href="registro.html">Registro de Peça</a>
+</div>
+
+<div class="header">
+  <div class="menu-btn" onclick="toggleMenu()">☰</div>
+  <h2>Estoque</h2>
+</div>
+
+<div class="container">
+
+<table>
+<thead>
+<tr>
+<th>NUMERAÇÃO</th>
+<th>MARCA</th>
+<th>MODELO</th>
+<th>OS</th>
+<th>PEÇA</th>
+<th>CODIGO</th>
+<th>VALOR</th>
+<th>DATA RETIRADA</th>
+<th>OS RECEPTOR</th>
+<th>RESPONSAVEL</th>
+</tr>
+</thead>
+
+<tbody id="tabela"></tbody>
+
+</table>
+
+</div>
+
+<script>
+function toggleMenu(){
+  let menu = document.getElementById("sidebar");
+  menu.style.left = menu.style.left === "0px" ? "-250px" : "0px";
+}
+
+function carregar(){
+
+let lista = JSON.parse(localStorage.getItem("estoque")) || [];
+
+let tabela = document.getElementById("tabela");
+tabela.innerHTML = "";
+
+lista.forEach(p => {
+
+tabela.innerHTML += `
+<tr>
+<td>${p.numeracao}</td>
+<td>${p.marca}</td>
+<td>${p.modelo}</td>
+<td>${p.os}</td>
+<td>${p.peca}</td>
+<td>${p.codigo}</td>
+<td>${p.valor}</td>
+<td>${p.dataRetirada}</td>
+<td>${p.osReceptor}</td>
+<td>${p.responsavel}</td>
+</tr>
+`;
+
+});
+
+}
+
+carregar();
+</script>
+
+</body>
+</html>
