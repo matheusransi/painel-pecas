@@ -46,49 +46,52 @@ th,td{padding:12px;border-bottom:1px solid #27272a;}
 
 const estoqueURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTzcuYj91nTsIkmp86gpPBW1REkCitAvBtiLVB4RQvRniDi_cj5Pmd4mcylqNiipw/pub?gid=1283911979&single=true&output=csv";
 
-function verificarOS(valor){
-if(!valor) return "SEM OS";
-valor=valor.toLowerCase();
-if(valor.includes("reservado")) return valor;
-return "SEM OS";
+function get(r, ...keys){
+for(let k of keys){
+if(r[k] !== undefined) return r[k];
+}
+return "";
 }
 
 function carregarEstoque(){
+
 Papa.parse(estoqueURL,{
 download:true,
 header:true,
 skipEmptyLines:true,
+
 complete:function(res){
 
-if(!res.data || res.data.length===0){
-alert("ERRO: Planilha não carregou");
-return;
-}
-
-let t=document.getElementById("tEstoque");
-t.innerHTML="";
+let tabela=document.getElementById("tEstoque");
+tabela.innerHTML="";
 
 res.data.forEach(r=>{
-let os=verificarOS(r["OS"]||"");
-t.innerHTML+=`
+
+let osRaw = get(r,"OS","os");
+let os = verificarOS(osRaw);
+
+tabela.innerHTML+=`
 <tr>
-<td>${r["NUMERAÇÃO"]||r["NUMERACAO"]||""}</td>
-<td>${r["MARCA"]||""}</td>
-<td>${r["MODELO"]||""}</td>
+<td>${get(r,"NUMERAÇÃO","NUMERACAO","Numeração")}</td>
+<td>${get(r,"MARCA","Marca")}</td>
+<td>${get(r,"MODELO","Modelo")}</td>
 <td>${os}</td>
-<td>${r["PEÇA"]||r["PECA"]||""}</td>
-<td>${r["CODIGO"]||""}</td>
-<td>${r["VALOR"]||""}</td>
-<td>${r["DATA RETIRADA"]||""}</td>
-<td>${r["OS RECEPTOR"]||""}</td>
-<td>${r["RESPONSAVEL"]||""}</td>
-</tr>`;
+<td>${get(r,"PEÇA","PECA","Peça")}</td>
+<td>${get(r,"CODIGO","Código","Codigo")}</td>
+<td>${get(r,"VALOR","Valor")}</td>
+<td>${get(r,"DATA RETIRADA","Data Retirada")}</td>
+<td>${get(r,"OS RECEPTOR","OS Receptor")}</td>
+<td>${get(r,"RESPONSAVEL","Responsável","Responsavel")}</td>
+</tr>
+`;
+
 });
 
 }
-});
-}
 
+});
+
+}
 carregarEstoque();
 
 </script>
