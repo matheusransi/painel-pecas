@@ -3,69 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <title>Estoque FINAL PRO</title>
-
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
 <style>
-body{font-family:Arial;background:#0b0b0c;color:#fff;margin:0}
-header{padding:20px;border-bottom:2px solid red;font-weight:600}
+body{font-family:Inter;background:#0b0b0c;color:#fff;margin:0}
+header{padding:20px;border-bottom:2px solid #e30613;font-weight:600}
 .container{padding:25px}
-
-.cards{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:12px;
-}
-
-.card{
-background:#121214;
-padding:15px;
-border-radius:12px;
-border:1px solid #222;
-}
-
-.actions{
-margin-top:20px;
-display:flex;
-gap:10px;
-}
-
-.actions button.active{
-background:red;
-}
-
-button{
-background:#18181b;
-border:1px solid #333;
-color:#fff;
-padding:10px;
-border-radius:8px;
-cursor:pointer;
-}
-
-button:hover{background:red}
-
-.section{
-margin-top:25px;
-transition:all .3s;
-overflow:hidden;
-}
-
-.section.hidden{
-max-height:0;
-opacity:0;
-margin:0;
-padding:0;
-}
-
-.section:not(.hidden){
-max-height:2000px;
-opacity:1;
-}
-
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.card{background:#121214;padding:15px;border-radius:12px;border:1px solid #222}
+.card h2{color:#e30613;margin:5px 0}
+.section{margin-top:25px}
 table{width:100%;border-collapse:collapse;margin-top:10px}
-td,th{padding:10px;border-bottom:1px solid #222}
+th,td{padding:10px;border-bottom:1px solid #222;text-align:left}
+th{color:#aaa}
+select{padding:8px;background:#18181b;color:#fff;border:1px solid #333;border-radius:8px}
+button{background:#18181b;border:1px solid #333;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
+button:hover{background:#e30613}
+.actions{margin-top:20px;display:flex;gap:10px}
+.actions button.active{background:#e30613;border-color:#e30613;}
+.hidden{display:none}
+canvas{background:#121214;padding:10px;border-radius:12px}
 
 #sideMenu{
 position:fixed;
@@ -74,7 +33,10 @@ left:-250px;
 width:250px;
 height:100%;
 background:#0b0b0b;
-transition:.3s;
+transition:0.3s;
+z-index:999;
+border-right:1px solid #222;
+padding-top:60px;
 }
 
 .menu-item{
@@ -83,21 +45,30 @@ padding:15px;
 color:#fff;
 text-decoration:none;
 }
-.menu-item:hover{background:red}
+.menu-item:hover{background:#e30613;}
+.menu-item.active{background:#e30613;}
 </style>
 </head>
 
 <body>
 
-<button onclick="toggleMenu()" style="position:fixed;left:20px;top:20px;">☰</button>
-
 <div id="sideMenu">
-<a href="index.html" class="menu-item">Solicitação</a>
-<a href="estoque.html" class="menu-item active">Estoque</a>
-<a href="registro.html" class="menu-item">Registro</a>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:15px;">
+<span style="font-weight:bold;">Menu</span>
+<button onclick="toggleMenu()" style="background:none;border:none;color:#fff;font-size:20px;">✕</button>
 </div>
 
-<header>Estoque</header>
+<a href="index.html" class="menu-item">Solicitação de Peças</a>
+<a href="estoque.html" class="menu-item active">Estoque</a>
+<a href="registro.html" class="menu-item">Registro de Peça</a>
+</div>
+
+<header style="display:flex;align-items:center;gap:15px;">
+<button onclick="toggleMenu()" style="background:transparent;border:none;color:#fff;font-size:22px;">☰</button>
+<h2 style="margin:0;">Estoque</h2>
+</header>
+
+<header>Dashboard Completo + Inteligência</header>
 
 <div class="container">
 
@@ -105,6 +76,8 @@ text-decoration:none;
 <div class="card">Total<h2 id="total"></h2></div>
 <div class="card">Retiradas<h2 id="ret"></h2></div>
 <div class="card">Hoje<h2 id="hoje"></h2></div>
+<div class="card">Sem OS<h2 id="sem" style="color:#ff3b3b"></h2></div>
+<div class="card">Reservado<h2 id="com" style="color:#00ff88"></h2></div>
 </div>
 
 <div class="actions">
@@ -113,9 +86,12 @@ text-decoration:none;
 <button id="btn-mov" onclick="mostrar('mov')">Movimento</button>
 </div>
 
-<!-- RESULTADOS -->
+<!-- RESULTADOS PRIMEIRO -->
 <div id="estoque" class="section hidden">
-<table><tbody id="tEstoque"></tbody></table>
+<table>
+<thead><tr><th>NUM</th><th>MARCA</th><th>MODELO</th><th>OS</th><th>PEÇA</th><th>RESP</th></tr></thead>
+<tbody id="tEstoque"></tbody>
+</table>
 </div>
 
 <div id="os" class="section hidden">
@@ -124,9 +100,9 @@ text-decoration:none;
 <select id="osSelect" onchange="selecionarOS()"></select>
 
 <input id="osInput"
-placeholder="Digite OS"
+placeholder="Digite a OS..."
 oninput="digitarOS()"
-style="padding:8px;background:#18181b;color:#fff;border:1px solid #333;">
+style="padding:8px;background:#18181b;color:#fff;border:1px solid #333;border-radius:8px;">
 </div>
 
 <div id="resumo"></div>
@@ -138,9 +114,9 @@ style="padding:8px;background:#18181b;color:#fff;border:1px solid #333;">
 <table><tbody id="tMov"></tbody></table>
 </div>
 
-<!-- RANKING -->
+<!-- RANKING DEPOIS -->
 <div class="section">
-<h3>Ranking Top 5 carros</h3>
+<h3 style="margin-left:10px;">Ranking Top 5 carros</h3>
 <table>
 <thead><tr><th>Marca / Modelo</th><th>Quantidade</th></tr></thead>
 <tbody id="rankingTabela"></tbody>
@@ -148,6 +124,7 @@ style="padding:8px;background:#18181b;color:#fff;border:1px solid #333;">
 </div>
 
 <div class="section">
+<h3>Top 5 carros</h3>
 <canvas id="grafico"></canvas>
 </div>
 
@@ -162,10 +139,11 @@ menu=!menu;
 m.style.left=menu?"0":"-250px";
 }
 
+// 🔥 TOGGLE + BOTÃO ATIVO
 function mostrar(id){
 
-let el=document.getElementById(id);
-let btn=document.getElementById("btn-"+id);
+let el = document.getElementById(id);
+let btn = document.getElementById("btn-"+id);
 
 if(!el.classList.contains("hidden")){
 el.classList.add("hidden");
@@ -182,6 +160,7 @@ el.classList.remove("hidden");
 btn.classList.add("active");
 }
 
+// 🔥 INPUT + SELECT SINCRONIZADO
 function selecionarOS(){
 document.getElementById("osInput").value="";
 buscarOS();
@@ -192,7 +171,7 @@ document.getElementById("osSelect").selectedIndex=0;
 buscarOS();
 }
 
-const url="https://docs.google.com/spreadsheets/d/e/2PACX-1vTzcuYj91nTsIkmp86gpPBW1REkCitAvBtiLVB4RQvRniDi_cj5Pmd4mcylqNiipw/pub?output=csv";
+const url="https://docs.google.com/spreadsheets/d/e/2PACX-1vTzcuYj91nTsIkmp86gpPBW1REkCitAvBtiLVB4RQvRniDi_cj5Pmd4mcylqNiipw/pub?gid=1283911979&single=true&output=csv";
 
 let dados=[];
 
@@ -200,20 +179,19 @@ function reservado(v){return v && v.toLowerCase().includes("reservado")}
 
 function normalizar(txt){
 return (txt||"").toLowerCase()
-.normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+.normalize("NFD").replace(/[\\u0300-\\u036f]/g,"")
 .replace(/[^a-z0-9 ]/g,"")
-.replace(/\s+/g," ")
+.replace(/\\s+/g," ")
 .trim();
 }
 
 function chave(marca,modelo){
 let base = normalizar(marca+" "+modelo);
-base = base.replace(/\b20\d{2}\b/g,"");
+base = base.replace(/\\b20\\d{2}\\b/g,"");
 return base;
 }
 
 function carregar(){
-
 Papa.parse(url,{
 download:true,
 complete:(res)=>{
@@ -223,25 +201,28 @@ dados=res.data.slice(2).filter(r=>r[0]);
 let hojeStr=new Date().toLocaleDateString("pt-BR");
 
 let total=dados.length;
-let ret=0, hoje=0;
+let ret=0, hoje=0, sem=0, com=0;
 
 let tabela="";
 let carros={};
 
 dados.forEach(r=>{
+let tem=reservado(r[3]);
 
 let saiu = r[9] && r[9].trim() !== "";
 
 if(r[7]) ret++;
 if(r[7]==hojeStr) hoje++;
 
-let key = chave(r[1], r[2]);
-carros[key] = (carros[key] || 0) + 1;
+if(tem) com++; else sem++;
 
-tabela+=`<tr style="${saiu?'color:#ff3b3b':''}">
+carros[chave(r[1],r[2])] = (carros[chave(r[1],r[2])]||0)+1;
+
+tabela+=`<tr style="${saiu ? 'color:#ff3b3b' : ''}">
 <td>${r[0]}</td>
 <td>${(r[1]||"").toUpperCase()}</td>
 <td>${(r[2]||"").toUpperCase()}</td>
+<td>${tem?`<span style="color:#00ff88">${r[3]}</span>`:`<span style="color:#ff3b3b">SEM OS</span>`}</td>
 <td>${r[4]}</td>
 <td>${r[9]}</td>
 </tr>`;
@@ -250,18 +231,18 @@ tabela+=`<tr style="${saiu?'color:#ff3b3b':''}">
 document.getElementById("total").innerText=total;
 document.getElementById("ret").innerText=ret;
 document.getElementById("hoje").innerText=hoje;
+document.getElementById("sem").innerText=sem;
+document.getElementById("com").innerText=com;
 
 document.getElementById("tEstoque").innerHTML=tabela;
 
-let top = Object.entries(carros)
-.sort((a,b)=>b[1]-a[1])
-.slice(0,5);
+let top = Object.entries(carros).sort((a,b)=>b[1]-a[1]).slice(0,5);
 
-let html="";
+let tabelaRank = "";
 top.forEach(r=>{
-html += `<tr><td>${r[0].toUpperCase()}</td><td>${r[1]}</td></tr>`;
+tabelaRank += `<tr><td>${r[0].toUpperCase()}</td><td>${r[1]}</td></tr>`;
 });
-document.getElementById("rankingTabela").innerHTML = html;
+document.getElementById("rankingTabela").innerHTML = tabelaRank;
 
 new Chart(document.getElementById("grafico"),{
 type:"bar",
