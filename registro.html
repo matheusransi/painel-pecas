@@ -110,7 +110,6 @@ cursor:pointer;
 <a href="registro.html" class="menu-item active">Registro de Peça</a>
 </div>
 
-<!-- HEADER CENTRALIZADO -->
 <header>
 Registro de Peça
 </header>
@@ -168,12 +167,22 @@ let nova = {
   responsavel: document.getElementById("responsavel").value
 };
 
-let lista = JSON.parse(localStorage.getItem("estoque")) || [];
-lista.push(nova);
-localStorage.setItem("estoque", JSON.stringify(lista));
+fetch("https://script.google.com/macros/s/AKfycbwrUvi1W2JvfPjd1lpWuJGosUaZO6b1EPOKvvMbVsDIzmOGRgWYzmaLsq9Qvgxmr5gj1w/exec", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(nova)
+})
+.then(res => res.text())
+.then(() => {
+  alert("Peça registrada na planilha!");
+  window.location.href = "estoque.html";
+})
+.catch(() => {
+  alert("Erro ao enviar");
+});
 
-alert("Peça registrada!");
-window.location.href = "estoque.html";
 }
 </script>
 
