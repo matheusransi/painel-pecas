@@ -36,9 +36,9 @@ text-decoration:none;
 
 /* HEADER */
 header{
-position:relative;
 padding:20px;
 border-bottom:2px solid red;
+text-align:right;
 }
 
 /* CONTEÚDO */
@@ -65,7 +65,7 @@ border:none;
 color:#fff;
 }
 
-button{
+button.salvar{
 margin-top:20px;
 padding:12px;
 background:red;
@@ -79,6 +79,22 @@ font-weight:bold;
 </head>
 
 <body>
+
+<!-- BOTÃO FIXO (RESOLVE O BUG) -->
+<button onclick="toggleMenu()" 
+style="
+position:fixed;
+top:20px;
+left:20px;
+z-index:1000;
+background:transparent;
+border:none;
+color:#fff;
+font-size:22px;
+cursor:pointer;
+">
+☰
+</button>
 
 <!-- MENU -->
 <div id="sideMenu">
@@ -94,32 +110,7 @@ font-weight:bold;
 
 <!-- HEADER -->
 <header>
-
-<button onclick="toggleMenu()" 
-style="
-position:absolute;
-left:20px;
-top:50%;
-transform:translateY(-50%);
-background:transparent;
-border:none;
-color:#fff;
-font-size:22px;
-cursor:pointer;
-">
-☰
-</button>
-
-<h2 style="
-margin:0;
-position:absolute;
-right:20px;
-top:50%;
-transform:translateY(-50%);
-">
-Registro de Peça
-</h2>
-
+<h2 style="margin:0;">Registro de Peça</h2>
 </header>
 
 <div class="container">
@@ -137,7 +128,7 @@ Registro de Peça
 <div class="field"><label>RESPONSAVEL</label><input id="responsavel"></div>
 </div>
 
-<button onclick="salvar()">Salvar Peça</button>
+<button class="salvar" onclick="salvar()">Salvar Peça</button>
 
 </div>
 
