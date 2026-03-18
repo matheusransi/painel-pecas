@@ -12,7 +12,6 @@ body{
   margin:0;
 }
 
-/* MENU */
 #sideMenu{
 position:fixed;
 top:0;
@@ -34,7 +33,6 @@ text-decoration:none;
 .menu-item:hover{background:#e30613;}
 .menu-item.active{background:#e30613;}
 
-/* HEADER */
 header{
 padding:20px;
 border-bottom:2px solid red;
@@ -43,7 +41,6 @@ font-size:20px;
 font-weight:bold;
 }
 
-/* CONTEÚDO */
 .container{padding:20px;}
 
 .form-grid{
@@ -82,23 +79,11 @@ font-weight:bold;
 
 <body>
 
-<!-- BOTÃO FIXO -->
 <button onclick="toggleMenu()" 
-style="
-position:fixed;
-top:20px;
-left:20px;
-z-index:1000;
-background:transparent;
-border:none;
-color:#fff;
-font-size:22px;
-cursor:pointer;
-">
+style="position:fixed;top:20px;left:20px;z-index:1000;background:transparent;border:none;color:#fff;font-size:22px;">
 ☰
 </button>
 
-<!-- MENU -->
 <div id="sideMenu">
 <div style="display:flex;justify-content:space-between;align-items:center;padding:15px;">
 <span style="font-weight:bold;">Menu</span>
@@ -110,9 +95,7 @@ cursor:pointer;
 <a href="registro.html" class="menu-item active">Registro de Peça</a>
 </div>
 
-<header>
-Registro de Peça
-</header>
+<header>Registro de Peça</header>
 
 <div class="container">
 
@@ -169,12 +152,9 @@ let nova = {
 
 fetch("https://script.google.com/macros/s/AKfycbwrUvi1W2JvfPjd1lpWuJGosUaZO6b1EPOKvvMbVsDIzmOGRgWYzmaLsq9Qvgxmr5gj1w/exec", {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
+  mode: "no-cors",
   body: JSON.stringify(nova)
 })
-.then(res => res.text())
 .then(() => {
   alert("Peça registrada na planilha!");
   window.location.href = "estoque.html";
