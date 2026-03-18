@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Registro de Peça</title>
+
+<style>
+body{
+  background:#0b0b0b;
+  color:#fff;
+  font-family:Arial;
+  margin:0;
+}
+
+/* MENU */
+#sideMenu{
+position:fixed;
+top:0;
+left:-250px;
+width:250px;
+height:100%;
+background:#0b0b0b;
+transition:0.3s;
+z-index:999;
+border-right:1px solid #222;
+}
+
+.menu-item{
+display:block;
+padding:15px;
+color:#fff;
+text-decoration:none;
+}
+.menu-item:hover{background:#e30613;}
+.menu-item.active{background:#e30613;}
+
+/* HEADER FORÇADO CORRETO */
+header{
+display:flex !important;
+justify-content:flex-start !important;
+align-items:center !important;
+gap:15px;
+padding:20px;
+border-bottom:2px solid red;
+width:100%;
+}
+
+/* CONTEÚDO */
+.container{padding:20px;}
+
+.form-grid{
+display:grid;
+grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+gap:15px;
+}
+
+.field{display:flex;flex-direction:column;}
+
+label{
+font-size:12px;
+color:#aaa;
+margin-bottom:5px;
+}
+
+input{
+padding:10px;
+background:#1a1a1a;
+border:none;
+color:#fff;
+}
+
+button{
+margin-top:20px;
+padding:12px;
+background:red;
+border:none;
+color:#fff;
+cursor:pointer;
+width:100%;
+font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div id="sideMenu">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:15px;">
+<span style="font-weight:bold;">Menu</span>
+<button onclick="toggleMenu()" style="background:none;border:none;color:#fff;font-size:20px;">✕</button>
+</div>
+
+<a href="index.html" class="menu-item">Solicitação de Peças</a>
+<a href="estoque.html" class="menu-item">Estoque</a>
+<a href="registro.html" class="menu-item active">Registro de Peça</a>
+</div>
+
+<header>
+<button onclick="toggleMenu()" style="background:transparent;border:none;color:#fff;font-size:22px;cursor:pointer;">☰</button>
+<h2 style="margin:0;">Registro de Peça</h2>
+</header>
+
+<div class="container">
+
+<div class="form-grid">
+<div class="field"><label>NUMERAÇÃO *</label><input id="numeracao"></div>
+<div class="field"><label>MARCA *</label><input id="marca"></div>
+<div class="field"><label>MODELO *</label><input id="modelo"></div>
+<div class="field"><label>OS *</label><input id="os"></div>
+<div class="field"><label>PEÇA *</label><input id="peca"></div>
+<div class="field"><label>CODIGO</label><input id="codigo"></div>
+<div class="field"><label>VALOR</label><input id="valor"></div>
+<div class="field"><label>DATA RETIRADA</label><input id="dataRetirada"></div>
+<div class="field"><label>OS RECEPTOR</label><input id="osReceptor"></div>
+<div class="field"><label>RESPONSAVEL</label><input id="responsavel"></div>
+</div>
+
+<button onclick="salvar()">Salvar Peça</button>
+
+</div>
+
+<script>
+let aberto=false;
+
+function toggleMenu(){
+let m=document.getElementById("sideMenu");
+aberto=!aberto;
+m.style.left = aberto ? "0px" : "-250px";
+}
+
+function salvar(){
+
+let obrigatorios = ["numeracao","marca","modelo","os","peca"];
+
+for(let campo of obrigatorios){
+  let valor = document.getElementById(campo).value.trim();
+  if(!valor){
+    alert("Preencha os campos obrigatórios!");
+    return;
+  }
+}
+
+let nova = {
+  numeracao: document.getElementById("numeracao").value,
+  marca: document.getElementById("marca").value,
+  modelo: document.getElementById("modelo").value,
+  os: document.getElementById("os").value,
+  peca: document.getElementById("peca").value,
+  codigo: document.getElementById("codigo").value,
+  valor: document.getElementById("valor").value,
+  dataRetirada: document.getElementById("dataRetirada").value,
+  osReceptor: document.getElementById("osReceptor").value,
+  responsavel: document.getElementById("responsavel").value
+};
+
+let lista = JSON.parse(localStorage.getItem("estoque")) || [];
+lista.push(nova);
+localStorage.setItem("estoque", JSON.stringify(lista));
+
+alert("Peça registrada!");
+window.location.href = "estoque.html";
+}
+</script>
+
+</body>
+</html>
