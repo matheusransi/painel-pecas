@@ -9,9 +9,7 @@
 
 <style>
 body{font-family:Arial;background:#0b0b0c;color:#fff;margin:0}
-
 header{padding:20px;border-bottom:2px solid red;font-weight:600}
-
 .container{padding:25px}
 
 .cards{
@@ -25,24 +23,6 @@ background:#121214;
 padding:15px;
 border-radius:12px;
 border:1px solid #222;
-}
-
-.section{
-margin-top:25px;
-transition:all .3s;
-overflow:hidden;
-}
-
-.section.hidden{
-max-height:0;
-opacity:0;
-margin:0;
-padding:0;
-}
-
-.section:not(.hidden){
-max-height:2000px;
-opacity:1;
 }
 
 .actions{
@@ -66,7 +46,25 @@ cursor:pointer;
 
 button:hover{background:red}
 
-table{width:100%;margin-top:10px;border-collapse:collapse}
+.section{
+margin-top:25px;
+transition:all .3s;
+overflow:hidden;
+}
+
+.section.hidden{
+max-height:0;
+opacity:0;
+margin:0;
+padding:0;
+}
+
+.section:not(.hidden){
+max-height:2000px;
+opacity:1;
+}
+
+table{width:100%;border-collapse:collapse;margin-top:10px}
 td,th{padding:10px;border-bottom:1px solid #222}
 
 #sideMenu{
@@ -85,7 +83,6 @@ padding:15px;
 color:#fff;
 text-decoration:none;
 }
-
 .menu-item:hover{background:red}
 </style>
 </head>
@@ -96,7 +93,7 @@ text-decoration:none;
 
 <div id="sideMenu">
 <a href="index.html" class="menu-item">Solicitação</a>
-<a href="estoque.html" class="menu-item">Estoque</a>
+<a href="estoque.html" class="menu-item active">Estoque</a>
 <a href="registro.html" class="menu-item">Registro</a>
 </div>
 
@@ -116,10 +113,9 @@ text-decoration:none;
 <button id="btn-mov" onclick="mostrar('mov')">Movimento</button>
 </div>
 
+<!-- RESULTADOS -->
 <div id="estoque" class="section hidden">
-<table>
-<tbody id="tEstoque"></tbody>
-</table>
+<table><tbody id="tEstoque"></tbody></table>
 </div>
 
 <div id="os" class="section hidden">
@@ -127,7 +123,8 @@ text-decoration:none;
 <div style="display:flex;gap:10px;">
 <select id="osSelect" onchange="selecionarOS()"></select>
 
-<input id="osInput" placeholder="Digite OS"
+<input id="osInput"
+placeholder="Digite OS"
 oninput="digitarOS()"
 style="padding:8px;background:#18181b;color:#fff;border:1px solid #333;">
 </div>
@@ -141,9 +138,17 @@ style="padding:8px;background:#18181b;color:#fff;border:1px solid #333;">
 <table><tbody id="tMov"></tbody></table>
 </div>
 
+<!-- RANKING -->
 <div class="section">
-<h3>Ranking</h3>
-<table><tbody id="rankingTabela"></tbody></table>
+<h3>Ranking Top 5 carros</h3>
+<table>
+<thead><tr><th>Marca / Modelo</th><th>Quantidade</th></tr></thead>
+<tbody id="rankingTabela"></tbody>
+</table>
+</div>
+
+<div class="section">
+<canvas id="grafico"></canvas>
 </div>
 
 </div>
@@ -191,43 +196,77 @@ const url="https://docs.google.com/spreadsheets/d/e/2PACX-1vTzcuYj91nTsIkmp86gpP
 
 let dados=[];
 
+function reservado(v){return v && v.toLowerCase().includes("reservado")}
+
+function normalizar(txt){
+return (txt||"").toLowerCase()
+.normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+.replace(/[^a-z0-9 ]/g,"")
+.replace(/\s+/g," ")
+.trim();
+}
+
+function chave(marca,modelo){
+let base = normalizar(marca+" "+modelo);
+base = base.replace(/\b20\d{2}\b/g,"");
+return base;
+}
+
 function carregar(){
 
 Papa.parse(url,{
 download:true,
 complete:(res)=>{
 
-dados=res.data.slice(2);
+dados=res.data.slice(2).filter(r=>r[0]);
+
+let hojeStr=new Date().toLocaleDateString("pt-BR");
+
+let total=dados.length;
+let ret=0, hoje=0;
 
 let tabela="";
 let carros={};
 
 dados.forEach(r=>{
 
-let saiu=r[9]&&r[9].trim()!=="";
+let saiu = r[9] && r[9].trim() !== "";
 
-tabela+=`<tr style="${saiu?'color:red':''}">
+if(r[7]) ret++;
+if(r[7]==hojeStr) hoje++;
+
+let key = chave(r[1], r[2]);
+carros[key] = (carros[key] || 0) + 1;
+
+tabela+=`<tr style="${saiu?'color:#ff3b3b':''}">
 <td>${r[0]}</td>
-<td>${r[1]}</td>
-<td>${r[2]}</td>
+<td>${(r[1]||"").toUpperCase()}</td>
+<td>${(r[2]||"").toUpperCase()}</td>
 <td>${r[4]}</td>
 <td>${r[9]}</td>
 </tr>`;
-
-carros[r[1]]=(carros[r[1]]||0)+1;
-
 });
+
+document.getElementById("total").innerText=total;
+document.getElementById("ret").innerText=ret;
+document.getElementById("hoje").innerText=hoje;
 
 document.getElementById("tEstoque").innerHTML=tabela;
 
-let top=Object.entries(carros).slice(0,5);
+let top = Object.entries(carros)
+.sort((a,b)=>b[1]-a[1])
+.slice(0,5);
 
 let html="";
 top.forEach(r=>{
-html+=`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`;
+html += `<tr><td>${r[0].toUpperCase()}</td><td>${r[1]}</td></tr>`;
 });
+document.getElementById("rankingTabela").innerHTML = html;
 
-document.getElementById("rankingTabela").innerHTML=html;
+new Chart(document.getElementById("grafico"),{
+type:"bar",
+data:{labels:top.map(x=>x[0].toUpperCase()),datasets:[{data:top.map(x=>x[1])}]}
+});
 
 popularOS();
 popularDatas();
@@ -238,28 +277,29 @@ popularDatas();
 
 function buscarOS(){
 
-let os=document.getElementById("osInput").value || document.getElementById("osSelect").value;
+let os = document.getElementById("osInput").value || document.getElementById("osSelect").value;
 
-let itens=dados.filter(r=>r[8]==os);
+let itens=dados.filter(r=>r[8]==os && reservado(r[3]));
 
 let html="";
 itens.forEach(r=>{
-html+=`<tr><td>${r[4]}</td><td>${r[9]}</td></tr>`;
+html+=`<tr><td>${r[4]}</td><td>${r[9]}</td><td>${r[7]}</td></tr>`;
 });
-
 document.getElementById("tOS").innerHTML=html;
 }
 
 function popularOS(){
 let sel=document.getElementById("osSelect");
 sel.innerHTML="<option>OS</option>";
-[...new Set(dados.map(r=>r[8]))].forEach(o=>sel.innerHTML+=`<option>${o}</option>`);
+[...new Set(dados.map(r=>r[8]).filter(Boolean))]
+.forEach(o=>sel.innerHTML+=`<option>${o}</option>`);
 }
 
 function popularDatas(){
 let sel=document.getElementById("dataSelect");
 sel.innerHTML="<option>Data</option>";
-[...new Set(dados.map(r=>r[7]))].forEach(d=>sel.innerHTML+=`<option>${d}</option>`);
+[...new Set(dados.map(r=>r[7]).filter(Boolean))]
+.forEach(d=>sel.innerHTML+=`<option>${d}</option>`);
 }
 
 function filtrarData(){
@@ -268,10 +308,9 @@ let d=document.getElementById("dataSelect").value;
 let html="";
 dados.forEach(r=>{
 if(r[7]==d){
-html+=`<tr><td>${r[4]}</td><td>${r[9]}</td></tr>`;
+html+=`<tr><td>${r[4]}</td><td>${r[9]}</td><td>${r[7]}</td></tr>`;
 }
 });
-
 document.getElementById("tMov").innerHTML=html;
 }
 
