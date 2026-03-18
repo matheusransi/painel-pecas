@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Estoque FINAL PRO</title>
+<title>Estoque </title>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
@@ -18,31 +18,13 @@ header{padding:20px;border-bottom:2px solid #e30613;font-weight:600}
 table{width:100%;border-collapse:collapse;margin-top:10px}
 th,td{padding:10px;border-bottom:1px solid #222;text-align:left}
 th{color:#aaa}
-select,input{padding:8px;background:#18181b;color:#fff;border:1px solid #333;border-radius:8px}
+select{padding:8px;background:#18181b;color:#fff;border:1px solid #333;border-radius:8px}
 button{background:#18181b;border:1px solid #333;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
 button:hover{background:#e30613}
 .actions{margin-top:20px;display:flex;gap:10px}
 .actions button.active{background:#e30613;border-color:#e30613;}
 .hidden{display:none}
-
-.grid-cards{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
-gap:15px;
-margin-top:15px;
-}
-
-.card-item{
-background:#121214;
-border:1px solid #222;
-border-radius:12px;
-padding:15px;
-transition:0.2s;
-}
-.card-item:hover{
-transform:translateY(-3px);
-border-color:#e30613;
-}
+canvas{background:#121214;padding:10px;border-radius:12px}
 
 #sideMenu{
 position:fixed;
@@ -65,24 +47,46 @@ text-decoration:none;
 }
 .menu-item:hover{background:#e30613;}
 .menu-item.active{background:#e30613;}
+
+/* 🔥 NOVO: CARDS */
+.grid-cards{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+gap:15px;
+margin-top:15px;
+}
+
+.card-item{
+background:#121214;
+border:1px solid #222;
+border-radius:12px;
+padding:15px;
+transition:0.2s;
+}
+
+.card-item:hover{
+transform:translateY(-3px);
+border-color:#e30613;
+}
 </style>
 </head>
 
 <body>
 
 <div id="sideMenu">
-<div style="display:flex;justify-content:space-between;padding:15px;">
-<span>Menu</span>
-<button onclick="toggleMenu()">✕</button>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:15px;">
+<span style="font-weight:bold;">Menu</span>
+<button onclick="toggleMenu()" style="background:none;border:none;color:#fff;font-size:20px;">✕</button>
 </div>
-<a href="index.html" class="menu-item">Solicitação</a>
+
+<a href="index.html" class="menu-item">Solicitação de Peças</a>
 <a href="estoque.html" class="menu-item active">Estoque</a>
-<a href="registro.html" class="menu-item">Registro</a>
+<a href="registro.html" class="menu-item">Registro de Peça</a>
 </div>
 
 <header style="display:flex;align-items:center;gap:15px;">
-<button onclick="toggleMenu()">☰</button>
-<h2>Estoque</h2>
+<button onclick="toggleMenu()" style="background:transparent;border:none;color:#fff;font-size:22px;">☰</button>
+<h2 style="margin:0;">Estoque</h2>
 </header>
 
 <header>Dashboard Completo + Inteligência</header>
@@ -93,8 +97,8 @@ text-decoration:none;
 <div class="card">Total<h2 id="total"></h2></div>
 <div class="card">Retiradas<h2 id="ret"></h2></div>
 <div class="card">Hoje<h2 id="hoje"></h2></div>
-<div class="card">Sem OS<h2 id="sem"></h2></div>
-<div class="card">Reservado<h2 id="com"></h2></div>
+<div class="card">Sem OS<h2 id="sem" style="color:#ff3b3b"></h2></div>
+<div class="card">Reservado<h2 id="com" style="color:#00ff88"></h2></div>
 </div>
 
 <div class="actions">
@@ -105,7 +109,7 @@ text-decoration:none;
 
 <div id="estoque" class="section hidden">
 
-<!-- FILTROS -->
+<!-- 🔥 NOVO: FILTROS -->
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px;">
 <select id="filtroOS" onchange="filtrarAvancado()"></select>
 <select id="filtroMarca" onchange="filtrarAvancado()"></select>
@@ -113,137 +117,45 @@ text-decoration:none;
 <input id="filtroPeca" placeholder="Buscar peça..." oninput="filtrarAvancado()">
 </div>
 
-<!-- TABELA ORIGINAL -->
 <table>
 <thead><tr><th>NUM</th><th>MARCA</th><th>MODELO</th><th>OS</th><th>PEÇA</th><th>RESP</th></tr></thead>
 <tbody id="tEstoque"></tbody>
 </table>
 
-<!-- CARDS NOVOS -->
+<!-- 🔥 NOVO: CARDS -->
 <div id="cardsEstoque" class="grid-cards"></div>
 
 </div>
 
 <div id="os" class="section hidden">
-<select id="osSelect"></select>
-<input id="osInput">
+<div style="display:flex;gap:10px;">
+<select id="osSelect" onchange="selecionarOS()"></select>
+<input id="osInput" oninput="digitarOS()">
+</div>
+<div id="resumo"></div>
 <table><tbody id="tOS"></tbody></table>
 </div>
 
 <div id="mov" class="section hidden">
-<select id="dataSelect"></select>
+<select id="dataSelect" onchange="filtrarData()"></select>
 <table><tbody id="tMov"></tbody></table>
 </div>
 
 <div class="section">
+<h3>Ranking Top 5 carros</h3>
 <table><tbody id="rankingTabela"></tbody></table>
 </div>
 
+<div class="section">
 <canvas id="grafico"></canvas>
+</div>
 
 </div>
 
 <script>
 
-let menu=false;
-function toggleMenu(){
-let m=document.getElementById("sideMenu");
-menu=!menu;
-m.style.left=menu?"0":"-250px";
-}
-
-function mostrar(id){
-let el=document.getElementById(id);
-let btn=document.getElementById("btn-"+id);
-
-if(!el.classList.contains("hidden")){
-el.classList.add("hidden");btn.classList.remove("active");return;
-}
-
-["estoque","os","mov"].forEach(x=>{
-document.getElementById(x).classList.add("hidden");
-document.getElementById("btn-"+x).classList.remove("active");
-});
-
-el.classList.remove("hidden");
-btn.classList.add("active");
-}
-
-const url="https://docs.google.com/spreadsheets/d/e/2PACX-1vRKST3j7xz8lQFIN13gdCywgphk6T0BqT25azdo_Gl3gVaSKxO4P3Cv1IcUAVvJvnC1cgHBLX54n_K7/pub?output=csv";
-
-let dados=[];
-
-function reservado(v){return v && v.toLowerCase().includes("reservado")}
-
-function carregar(){
-Papa.parse(url,{
-download:true,
-complete:(res)=>{
-
-dados=res.data.slice(2).filter(r=>r[0]);
-
-let tabela="";
-let cards="";
-let osSet=new Set(),marcaSet=new Set(),modeloSet=new Set(),pecas=new Set();
-
-dados.forEach(r=>{
-
-let tem=reservado(r[3]);
-let saiu = r[9] && r[9].trim() !== "";
-
-osSet.add(r[3]);marcaSet.add(r[1]);modeloSet.add(r[2]);pecas.add(r[4]);
-
-// tabela
-tabela+=`<tr>
-<td>${r[0]}</td>
-<td>${r[1]}</td>
-<td>${r[2]}</td>
-<td>${tem?r[3]:"SEM OS"}</td>
-<td>${r[4]}</td>
-<td>${r[9]||"-"}</td>
-</tr>`;
-
-// cards
-cards+=`
-<div class="card-item" data-text="${r.join(" ").toLowerCase()}">
-<div><b>🔧 ${r[4]}</b></div>
-<div style="font-size:12px;color:#aaa">${r[1]} • ${r[2]}</div>
-<div style="font-size:12px;">NUM: ${r[0]}</div>
-<div style="font-size:12px;">OS: ${r[3]||"SEM OS"}</div>
-<div style="font-size:12px;">RESP: ${r[9]||"-"}</div>
-<div style="font-size:10px;margin-top:6px;color:${saiu?"#ff4d4d":"#00ff88"}">
-${saiu?"RETIRADO":"EM ESTOQUE"}
-</div>
-</div>`;
-});
-
-document.getElementById("tEstoque").innerHTML=tabela;
-document.getElementById("cardsEstoque").innerHTML=cards;
-
-// filtros
-function fill(id,set){
-let el=document.getElementById(id);
-el.innerHTML="<option value=''>Todos</option>";
-[...set].forEach(v=>el.innerHTML+=`<option>${v}</option>`);
-}
-
-fill("filtroOS",osSet);
-fill("filtroMarca",marcaSet);
-fill("filtroModelo",modeloSet);
-
-// autocomplete peça
-let dl=document.createElement("datalist");
-dl.id="listaPecas";
-[...pecas].forEach(p=>dl.innerHTML+=`<option value="${p}">`);
-document.body.appendChild(dl);
-document.getElementById("filtroPeca").setAttribute("list","listaPecas");
-
-}
-});
-}
-
+// 🔥 NOVO: FILTRO + CARDS
 function filtrarAvancado(){
-
 let os=filtroOS.value.toLowerCase();
 let marca=filtroMarca.value.toLowerCase();
 let modelo=filtroModelo.value.toLowerCase();
@@ -268,10 +180,26 @@ c.style.display =
 (!peca||t.includes(peca))
 ? "" : "none";
 });
-
 }
 
-carregar();
+// 🔥 RESTANTE DO SEU CÓDIGO IGUAL + ADIÇÃO DOS CARDS NO FINAL DO LOOP
+
+// 👉 DENTRO DO carregar(), logo após criar "tabela+="
+// adiciona:
+
+// cards
+let cards="";
+dados.forEach(r=>{
+cards+=`
+<div class="card-item" data-text="${r.join(" ").toLowerCase()}">
+<div><b>${r[4]}</b></div>
+<div style="font-size:12px;color:#aaa">${r[1]} • ${r[2]}</div>
+<div style="font-size:12px;">NUM: ${r[0]}</div>
+<div style="font-size:12px;">OS: ${r[3]||"SEM OS"}</div>
+<div style="font-size:12px;">RESP: ${r[9]||"-"}</div>
+</div>`;
+});
+document.getElementById("cardsEstoque").innerHTML=cards;
 
 </script>
 
