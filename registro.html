@@ -12,39 +12,38 @@ body{
   margin:0;
 }
 
+/* MENU PADRÃO */
+#sideMenu{
+position:fixed;
+top:0;
+left:-250px;
+width:250px;
+height:100%;
+background:#0b0b0b;
+transition:0.3s;
+z-index:999;
+}
+
+.menu-item{
+display:block;
+padding:15px;
+color:#fff;
+text-decoration:none;
+}
+.menu-item:hover{
+background:#e30613;
+}
+.menu-item.active{
+background:#e30613;
+}
+
+/* HEADER */
 .header{
   padding:20px;
   border-bottom:2px solid red;
   display:flex;
   align-items:center;
-}
-
-.menu-btn{
-  font-size:24px;
-  cursor:pointer;
-  margin-right:15px;
-}
-
-.sidebar{
-  position:fixed;
-  left:-250px;
-  top:0;
-  width:250px;
-  height:100%;
-  background:#111;
-  transition:0.3s;
-  padding-top:20px;
-}
-
-.sidebar a{
-  display:block;
-  padding:15px;
-  color:#fff;
-  text-decoration:none;
-}
-
-.sidebar a:hover{
-  background:red;
+  gap:15px;
 }
 
 .container{
@@ -90,15 +89,24 @@ button{
 
 <body>
 
-<div class="sidebar" id="sidebar">
-  <a href="index.html">Controle de Peças</a>
-  <a href="estoque.html">Estoque</a>
-  <a href="registro.html">Registro de Peça</a>
+<!-- MENU CORRETO -->
+<div id="sideMenu">
+
+<div style="display:flex;justify-content:space-between;align-items:center;padding:15px;">
+<span style="font-weight:bold;">Menu</span>
+<button onclick="toggleMenu()" style="background:none;border:none;color:#fff;font-size:20px;">✕</button>
 </div>
 
+<a href="index.html" class="menu-item">Solicitação de Peças</a>
+<a href="estoque.html" class="menu-item">Estoque</a>
+<a href="registro.html" class="menu-item active">Registro de Peça</a>
+
+</div>
+
+<!-- HEADER -->
 <div class="header">
-  <div class="menu-btn" onclick="toggleMenu()">☰</div>
-  <h2>Registro de Peça</h2>
+<button onclick="toggleMenu()" style="background:transparent;border:none;color:#fff;font-size:22px;cursor:pointer;">☰</button>
+<h2>Registro de Peça</h2>
 </div>
 
 <div class="container">
@@ -162,9 +170,11 @@ button{
 </div>
 
 <script>
+let menu=false;
 function toggleMenu(){
-  let menu = document.getElementById("sidebar");
-  menu.style.left = menu.style.left === "0px" ? "-250px" : "0px";
+let m=document.getElementById("sideMenu");
+menu=!menu;
+m.style.left=menu?"0":"-250px";
 }
 
 function salvar(){
