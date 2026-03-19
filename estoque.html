@@ -280,8 +280,6 @@ pecas.add(r[4]);
 
 // cards
 cards+=`
-cards+=`
-cards+=`
 <div class="card-item" data-text="${r.join(" ").toLowerCase()}">
 
 <div><b>🔧 ${r[4]}</b></div>
@@ -297,18 +295,6 @@ ${saiu ? `RETIRADO • ${dataRetirada}` : "EM ESTOQUE"}
 
 </div>`;
 
-<div><b>🔧 ${r[4]}</b></div>
-<div style="font-size:12px;color:#aaa">${r[1]} • ${r[2]}</div>
-
-<div>NUM: ${r[0]}</div>
-<div>OS: ${r[3]||"SEM OS"}</div>
-<div>RESP: ${r[9]||"-"}</div>
-
-<div class="status ${saiu?"out":"in"}">
-${saiu ? `RETIRADO • ${dataRetirada}` : "EM ESTOQUE"}
-</div>
-
-</div>`;
 });
 
 document.getElementById("total").innerText=total;
