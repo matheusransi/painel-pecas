@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Estoque FINAL PRO</title>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body{font-family:Inter;background:#0b0b0c;color:#fff;margin:0}
+header{padding:20px;border-bottom:2px solid #e30613;font-weight:600}
+.container{padding:25px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.card{background:#121214;padding:15px;border-radius:12px;border:1px solid #222}
+.card h2{color:#e30613;margin:5px 0}
+.section{margin-top:25px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{padding:10px;border-bottom:1px solid #222;text-align:left}
+th{color:#aaa}
+select,input{padding:8px;background:#18181b;color:#fff;border:1px solid #333;border-radius:8px}
+button{background:#18181b;border:1px solid #333;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}
+button:hover{background:#e30613}
+.actions{margin-top:20px;display:flex;gap:10px}
+.actions button.active{background:#e30613;border-color:#e30613;}
+.hidden{display:none}
+canvas{background:#121214;padding:10px;border-radius:12px}
+
+#sideMenu{
+position:fixed;
+top:0;
+left:-250px;
+width:250px;
+height:100%;
+background:#0b0b0b;
+transition:0.3s;
+z-index:999;
+border-right:1px solid #222;
+padding-top:60px;
+}
+
+.menu-item{
+display:block;
+padding:15px;
+color:#fff;
+text-decoration:none;
+}
+.menu-item:hover{background:#e30613;}
+.menu-item.active{background:#e30613;}
+
+.grid-cards{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+gap:15px;
+margin-top:15px;
+}
+.card-item{
+background:#121214;
+border:1px solid #222;
+border-radius:12px;
+padding:15px;
+transition:0.2s;
+}
+.card-item:hover{
+transform:translateY(-4px);
+border-color:#e30613;
+}
+.status{
+margin-top:8px;
+font-size:11px;
+padding:4px 8px;
+border-radius:6px;
+display:inline-block;
+}
+.in{background:#0f2a1a;color:#00ff88;}
+.out{background:#2a0f0f;color:#ff4d4d;}
+</style>
+</head>
+
+<body>
+
+<div id="sideMenu">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:15px;">
+<span style="font-weight:bold;">Menu</span>
+<button onclick="toggleMenu()" style="background:none;border:none;color:#fff;font-size:20px;">✕</button>
+</div>
+
+<a href="index.html" class="menu-item">Solicitação de Peças</a>
+<a href="estoque.html" class="menu-item active">Estoque</a>
+<a href="registro.html" class="menu-item">Registro de Peça</a>
+</div>
+
+<header style="display:flex;align-items:center;gap:15px;">
+<button onclick="toggleMenu()" style="background:transparent;border:none;color:#fff;font-size:22px;">☰</button>
+<h2 style="margin:0;">Estoque</h2>
+</header>
+
+<header>Dashboard Completo + Inteligência</header>
+
+<div class="container">
+
+<div class="cards">
+<div class="card">Total<h2 id="total"></h2></div>
+<div class="card">Retiradas<h2 id="ret"></h2></div>
+<div class="card">Hoje<h2 id="hoje"></h2></div>
+<div class="card">Sem OS<h2 id="sem" style="color:#ff3b3b"></h2></div>
+<div class="card">Reservado<h2 id="com" style="color:#00ff88"></h2></div>
+</div>
+
+<div class="actions">
+<button id="btn-estoque" onclick="mostrar('estoque')">Estoque</button>
+<button id="btn-mov" onclick="mostrar('mov')">Movimento</button>
+</div>
+
+<div id="estoque" class="section hidden">
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px;">
+<select id="filtroOS" onchange="filtrarAvancado()"></select>
+<select id="filtroMarca" onchange="filtrarAvancado()"></select>
+<select id="filtroModelo" onchange="filtrarAvancado()"></select>
+<input id="filtroPeca" placeholder="Buscar peça..." oninput="filtrarAvancado()">
+</div>
+
+<table style="display:none;">
+<thead><tr><th>NUM</th><th>MARCA</th><th>MODELO</th><th>OS</th><th>PEÇA</th><th>RESP</th></tr></thead>
+<tbody id="tEstoque"></tbody>
+</table>
+
+<div id="cardsEstoque" class="grid-cards"></div>
+
+</div>
+
+<div id="mov" class="section hidden">
+<select id="dataSelect" onchange="filtrarData()"></select>
+<table><tbody id="tMov"></tbody></table>
+</div>
+
+<div class="section">
+<h3 style="margin-left:10px;">Ranking Top 5 carros</h3>
+<table>
+<thead><tr><th>Marca / Modelo</th><th>Quantidade</th></tr></thead>
+<tbody id="rankingTabela"></tbody>
+</table>
+</div>
+
+<div class="section">
+<h3>Top 5 carros</h3>
+<canvas id="grafico"></canvas>
+</div>
+
+</div>
+
+<script>
+
+let menu=false;
+function toggleMenu(){
+let m=document.getElementById("sideMenu");
+menu=!menu;
+m.style.left=menu?"0":"-250px";
+}
+
+function mostrar(id){
+let el = document.getElementById(id);
+if(!el.classList.contains("hidden")){
+el.classList.add("hidden");
+return;
+}
+["estoque","mov"].forEach(x=>{
+document.getElementById(x).classList.add("hidden");
+});
+el.classList.remove("hidden");
+}
+
+function filtrarAvancado(){
+let os=filtroOS.value.toLowerCase();
+let marca=filtroMarca.value.toLowerCase();
+let modelo=filtroModelo.value.toLowerCase();
+let peca=filtroPeca.value.toLowerCase();
+
+document.querySelectorAll(".card-item").forEach(c=>{
+let t=c.dataset.text;
+c.style.display =
+(!os||t.includes(os)) &&
+(!marca||t.includes(marca)) &&
+(!modelo||t.includes(modelo)) &&
+(!peca||t.includes(peca))
+? "" : "none";
+});
+}
+
+const url="https://docs.google.com/spreadsheets/d/e/2PACX-1vRKST3j7xz8lQFIN13gdCywgphk6T0BqT25azdo_Gl3gVaSKxO4P3Cv1IcUAVvJvnC1cgHBLX54n_K7/pub?output=csv";
+
+let dados=[];
+
+function reservado(v){return v && v.toLowerCase().includes("reservado")}
+
+function chave(marca,modelo){
+return (marca+" "+modelo).toLowerCase();
+}
+
+function carregar(){
+Papa.parse(url,{
+download:true,
+complete:(res)=>{
+
+dados=res.data.slice(2).filter(r=>r[0]);
+
+let hojeStr=new Date().toLocaleDateString("pt-BR");
+
+let total=dados.length;
+let ret=0, hoje=0, sem=0, com=0;
+
+let carros={};
+
+let cards="";
+let osSet=new Set(),marcaSet=new Set(),modeloSet=new Set(),pecas=new Set();
+
+dados.forEach(r=>{
+let tem=reservado(r[3]);
+let saiu = r[9] && r[9].trim() !== "";
+let dataRetirada = r[7] || "";
+
+if(r[7]) ret++;
+if(r[7]==hojeStr) hoje++;
+
+if(tem) com++; else sem++;
+
+carros[chave(r[1],r[2])] = (carros[chave(r[1],r[2])]||0)+1;
+
+osSet.add(r[3]);
+marcaSet.add(r[1]);
+modeloSet.add(r[2]);
+pecas.add(r[4]);
+
+cards+=`
+<div class="card-item" data-text="${r.join(" ").toLowerCase()}">
+<div><b>🔧 ${r[4]}</b></div>
+<div style="font-size:12px;color:#aaa">${r[1]} • ${r[2]}</div>
+<div>NUM: ${r[0]}</div>
+<div>OS: ${r[3]||"SEM OS"}</div>
+<div>RESP: ${r[9]||"-"}</div>
+<div class="status ${saiu?"out":"in"}">
+${saiu ? `RETIRADO • ${dataRetirada}` : "EM ESTOQUE"}
+</div>
+</div>`;
+});
+
+document.getElementById("total").innerText=total;
+document.getElementById("ret").innerText=ret;
+document.getElementById("hoje").innerText=hoje;
+document.getElementById("sem").innerText=sem;
+document.getElementById("com").innerText=com;
+
+document.getElementById("cardsEstoque").innerHTML=cards;
+
+function fill(id,set){
+let el=document.getElementById(id);
+let arr=[...set].filter(v=>v && v.trim() !== "");
+
+if(id==="filtroOS"){
+arr.sort((a,b)=>(parseInt(b)||0)-(parseInt(a)||0));
+}else{
+arr.sort((a,b)=>a.localeCompare(b));
+}
+
+el.innerHTML="<option value=''>Todos</option>";
+arr.forEach(v=>el.innerHTML+=`<option>${v}</option>`);
+}
+
+fill("filtroOS",osSet);
+fill("filtroMarca",marcaSet);
+fill("filtroModelo",modeloSet);
+
+let dl=document.createElement("datalist");
+dl.id="listaPecas";
+[...pecas].forEach(p=>dl.innerHTML+=`<option value="${p}">`);
+document.body.appendChild(dl);
+document.getElementById("filtroPeca").setAttribute("list","listaPecas");
+
+let top = Object.entries(carros).sort((a,b)=>b[1]-a[1]).slice(0,5);
+let tabelaRank="";
+top.forEach(r=>{
+tabelaRank += `<tr><td>${r[0].toUpperCase()}</td><td>${r[1]}</td></tr>`;
+});
+document.getElementById("rankingTabela").innerHTML = tabelaRank;
+
+new Chart(document.getElementById("grafico"),{
+type:"bar",
+data:{labels:top.map(x=>x[0].toUpperCase()),datasets:[{data:top.map(x=>x[1])}]}
+});
+
+popularDatas();
+
+}
+});
+}
+
+function popularDatas(){
+let sel=document.getElementById("dataSelect");
+sel.innerHTML="<option value=''>Selecione a data</option>";
+
+let datas = dados.map(r => (r[7] || "").trim()).filter(d => d !== "");
+datas = [...new Set(datas)];
+
+datas.sort((a,b)=>{
+let da = a.split("/").reverse().join("-");
+let db = b.split("/").reverse().join("-");
+return new Date(db) - new Date(da);
+});
+
+datas.forEach(d=>{
+sel.innerHTML += `<option>${d}</option>`;
+});
+}
+
+function filtrarData(){
+let d=document.getElementById("dataSelect").value;
+let html="";
+dados.forEach(r=>{
+if(r[7]==d){
+html+=`<tr><td>${r[4]}</td><td>${r[9]}</td><td>${r[7]}</td></tr>`;
+}
+});
+document.getElementById("tMov").innerHTML=html;
+}
+
+carregar();
+
+</script>
+
+</body>
+</html>
