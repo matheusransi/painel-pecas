@@ -285,7 +285,11 @@ el.innerHTML="<option value=''>Todos</option>";
 let arr=[...set].filter(v=>v && v.trim() !== "");
 
 if(id==="filtroOS"){
-arr.sort((a,b)=>Number(b)-Number(a)); // decrescente
+arr.sort((a,b)=>{
+let numA = parseInt(a) || 0;
+let numB = parseInt(b) || 0;
+return numB - numA;
+});
 }else{
 arr.sort((a,b)=>a.localeCompare(b)); // alfabético
 }
