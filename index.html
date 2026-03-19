@@ -200,6 +200,45 @@ color:#fff;
 
 .messageUser{color:#ddd;margin-bottom:8px}
 .messageBot{color:#9cdcfe;margin-bottom:12px}
+  .os-card{
+background:#111;
+border:1px solid #2a2a2e;
+border-radius:14px;
+padding:16px;
+margin-bottom:12px;
+transition:0.2s;
+}
+
+.os-card:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 25px rgba(0,0,0,0.5);
+}
+
+.os-top{
+display:flex;
+justify-content:space-between;
+margin-bottom:8px;
+}
+
+.os-id{
+font-weight:600;
+font-size:15px;
+}
+
+.os-body{
+font-size:13px;
+color:#a1a1aa;
+}
+
+.status{
+font-size:11px;
+padding:4px 10px;
+border-radius:20px;
+}
+
+.status-solicitada{background:#6b7280;}
+.status-comprada{background:#2563eb;}
+.status-entregue{background:#16a34a;}
 </style>
 </head>
 
@@ -297,17 +336,7 @@ cursor:pointer;
 <div class="card"><span>Valor gasto hoje</span><h2 id="valorHoje">R$ 0,00</h2></div>
 </div>
 
-<table>
-<thead>
-<tr>
-<th>OS</th>
-<th>Peça</th>
-<th>Fornecedor</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody id="tHoje"></tbody>
-</table>
+<div id="tHoje"></div>
 </div>
 
 <div id="atrasadasTab" class="section hidden">
@@ -457,7 +486,21 @@ html+=`<tr><td>${i[0]}</td><td>${i[1]}</td></tr>`;
 let el=document.getElementById("rankingSolicitantes");
 if(el) el.innerHTML=html;
 }
+function criarCard(r, status, classe){
+return `
+<div class="os-card">
+  <div class="os-top">
+    <span class="os-id">OS ${r["OS"]}</span>
+    <span class="status ${classe}">${status}</span>
+  </div>
 
+  <div class="os-body">
+    <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
+    <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
+  </div>
+</div>
+`;
+}
 function carregar(){
 
 Papa.parse(csvURL + "&t=" + new Date().getTime(),{
@@ -511,7 +554,9 @@ let valor=(r["VALOR"]||"").toLowerCase();
 
 if(sameDay(dataSolic,hoje)){
 solicitadasHoje++;
-tHoje.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>Solicitada hoje</td></tr>`;
+if(sameDay(dataSolic,hoje)){
+solicitadasHoje++;
+tHoje.innerHTML+=criarCard(r,"Solicitada","status-solicitada");
 }
 
 if(sameDay(dataCompra,hoje)){
@@ -525,13 +570,28 @@ let valorNum = parseFloat((r["VALOR"] || "0")
 
 if(!isNaN(valorNum)) valorHoje += valorNum;
 
-tHoje.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>Comprada hoje</td></tr>`;
+tHoje.innerHTML+=criarCard(r,"Comprada","status-comprada");
 }
 
 if(sameDay(dataEntrega,hoje)){
 entreguesHoje++;
-tHoje.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>Entregue hoje</td></tr>`;
+tHoje.innerHTML+=criarCard(r,"Entregue","status-entregue");
 }
+
+if(sameDay(dataCompra,hoje)){
+compradasHoje++;
+
+let valorNum = parseFloat((r["VALOR"] || "0")
+.toString()
+.replace("R$","")
+.replace(/\./g,"")
+.replace(",","."));
+
+if(!isNaN(valorNum)) valorHoje += valorNum;
+
+
+if(sameDay(dataEntrega,hoje)){
+entreguesHoje++;
 
 if(dataEntrega) entregues++;
 
