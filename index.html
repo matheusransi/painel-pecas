@@ -200,48 +200,6 @@ color:#fff;
 
 .messageUser{color:#ddd;margin-bottom:8px}
 .messageBot{color:#9cdcfe;margin-bottom:12px}
-  .os-card{
-background:#111;
-border:1px solid #2a2a2e;
-border-radius:14px;
-padding:16px;
-margin-bottom:12px;
-transition:0.2s;
-}
-
-.os-card:hover{
-transform:translateY(-3px);
-box-shadow:0 10px 25px rgba(0,0,0,0.5);
-}
-
-.os-top{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:8px;
-}
-
-.os-id{
-font-weight:600;
-font-size:15px;
-}
-
-.os-body{
-font-size:13px;
-color:#a1a1aa;
-}
-
-.status{
-font-size:11px;
-padding:4px 10px;
-border-radius:20px;
-}
-
-/* CORES */
-.status-solicitada{background:#6b7280;}
-.status-comprada{background:#2563eb;}
-.status-entregue{background:#16a34a;}
-.status-atrasado{background:#e30613;}
 </style>
 </head>
 
@@ -553,19 +511,8 @@ let valor=(r["VALOR"]||"").toLowerCase();
 
 if(sameDay(dataSolic,hoje)){
 solicitadasHoje++;
-tHoje.innerHTML += `
-<div class="os-card status-solicitada">
-  <div class="os-top">
-    <span class="os-id">OS ${r["OS"]}</span>
-    <span class="status status-solicitada">Solicitada</span>
-  </div>
-
-  <div class="os-body">
-    <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
-    <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
-  </div>
-</div>
-`;
+tHoje.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>Solicitada hoje</td></tr>`;
+}
 
 if(sameDay(dataCompra,hoje)){
 compradasHoje++;
@@ -578,35 +525,13 @@ let valorNum = parseFloat((r["VALOR"] || "0")
 
 if(!isNaN(valorNum)) valorHoje += valorNum;
 
-tHoje.innerHTML += `
-<div class="os-card status-comprada">
-  <div class="os-top">
-    <span class="os-id">OS ${r["OS"]}</span>
-    <span class="status status-comprada">Comprada</span>
-  </div>
-
-  <div class="os-body">
-    <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
-    <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
-  </div>
-</div>
-`;
+tHoje.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>Comprada hoje</td></tr>`;
+}
 
 if(sameDay(dataEntrega,hoje)){
 entreguesHoje++;
-tHoje.innerHTML += `
-<div class="os-card status-entregue">
-  <div class="os-top">
-    <span class="os-id">OS ${r["OS"]}</span>
-    <span class="status status-entregue">Entregue</span>
-  </div>
-
-  <div class="os-body">
-    <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
-    <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
-  </div>
-</div>
-`;
+tHoje.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>Entregue hoje</td></tr>`;
+}
 
 if(dataEntrega) entregues++;
 
@@ -622,37 +547,12 @@ if(hojeZ > prazoEntrega){
 atrasadas++;
 let diff=Math.floor((hoje-prazoEntrega)/(1000*60*60*24));
 
-tA.innerHTML += `
-<div class="os-card status-atrasado">
-  <div class="os-top">
-    <span class="os-id">OS ${r["OS"]}</span>
-    <span class="status status-atrasado">Atrasado (${diff} dias)</span>
-  </div>
+tA.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>${formatar(prazoEntrega)}</td><td>${diff}</td></tr>`;
 
-  <div class="os-body">
-    <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
-    <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
-    <div><b>Prazo:</b> ${formatar(prazoEntrega)}</div>
-  </div>
-</div>
-`;
 }else{
 
 prazo++;
-tP.innerHTML += `
-<div class="os-card">
-  <div class="os-top">
-    <span class="os-id">OS ${r["OS"]}</span>
-    <span class="status">No prazo</span>
-  </div>
-
-  <div class="os-body">
-    <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
-    <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
-    <div><b>Prazo:</b> ${formatar(prazoEntrega)}</div>
-  </div>
-</div>
-`;
+tP.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>${formatar(prazoEntrega)}</td></tr>`;
 
 }
 
