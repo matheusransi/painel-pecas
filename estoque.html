@@ -110,7 +110,6 @@ display:inline-block;
 
 <div class="actions">
 <button id="btn-estoque" onclick="mostrar('estoque')">Estoque</button>
-<button id="btn-os" onclick="mostrar('os')">Buscar OS</button>
 <button id="btn-mov" onclick="mostrar('mov')">Movimento</button>
 </div>
 
@@ -135,11 +134,7 @@ display:inline-block;
 
 </div>
 
-<div id="os" class="section hidden">
-<div style="display:flex;gap:10px;">
-<select id="osSelect" onchange="selecionarOS()"></select>
-<input id="osInput" oninput="digitarOS()">
-</div>
+
 <div id="resumo"></div>
 <table><tbody id="tOS"></tbody></table>
 </div>
@@ -184,7 +179,7 @@ return;
 }
 
 // 👉 fecha todos
-["estoque","os","mov"].forEach(x=>{
+["estoque","mov"].forEach(x=>{
 document.getElementById(x).classList.add("hidden");
 });
 
@@ -343,23 +338,7 @@ popularDatas();
 }
 
 // resto igual
-function selecionarOS(){document.getElementById("osInput").value="";buscarOS();}
-function digitarOS(){document.getElementById("osSelect").selectedIndex=0;buscarOS();}
 
-function buscarOS(){
-let os = document.getElementById("osInput").value || document.getElementById("osSelect").value;
-let itens=dados.filter(r=>r[8]==os && reservado(r[3]));
-let html="";
-itens.forEach(r=>{html+=`<tr><td>${r[4]}</td><td>${r[9]}</td><td>${r[7]}</td></tr>`;});
-document.getElementById("tOS").innerHTML=html;
-}
-
-function popularOS(){
-let sel=document.getElementById("osSelect");
-sel.innerHTML="<option>OS</option>";
-[...new Set(dados.map(r=>r[8]).filter(Boolean))]
-.forEach(o=>sel.innerHTML+=`<option>${o}</option>`);
-}
 
 function popularDatas(){
 let sel=document.getElementById("dataSelect");
