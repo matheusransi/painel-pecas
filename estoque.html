@@ -388,7 +388,11 @@ tabelaRank += `<tr><td>${r[0].toUpperCase()}</td><td>${r[1]}</td></tr>`;
 });
 document.getElementById("rankingTabela").innerHTML = tabelaRank;
 
-new Chart(document.getElementById("grafico"),{
+if(window.graficoChart){
+  window.graficoChart.destroy();
+}
+
+window.graficoChart = new Chart(document.getElementById("grafico"),{
 type:"bar",
 data:{labels:top.map(x=>x[0].toUpperCase()),datasets:[{data:top.map(x=>x[1])}]}
 });
@@ -423,7 +427,10 @@ return (marca+" "+modelo).toLowerCase();
 }
 
 carregar();
-
+// 🔄 atualiza automaticamente a cada 30 segundos
+setInterval(() => {
+  carregar();
+}, 30000);
 </script>
 
 </body>
