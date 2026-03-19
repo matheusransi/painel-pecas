@@ -166,6 +166,14 @@ display:inline-block;
 
 <script>
 
+function limparOS(os){
+if(!os) return "";
+return os.toString()
+.replace(/\(.*?\)/g,"") // remove (RESERVADO)
+.replace(/reservado/gi,"")
+.trim();
+}
+
 let menu=false;
 function toggleMenu(){
 let m=document.getElementById("sideMenu");
@@ -195,19 +203,29 @@ el.classList.remove("hidden");
 
 // 🔥 FILTRO
 function filtrarAvancado(){
-let os=filtroOS.value.toLowerCase();
-let marca=filtroMarca.value.toLowerCase();
-let modelo=filtroModelo.value.toLowerCase();
-let peca=filtroPeca.value.toLowerCase();
+
+let os = limparOS(filtroOS.value).toLowerCase();
+let marca = filtroMarca.value.toLowerCase();
+let modelo = filtroModelo.value.toLowerCase();
+let peca = filtroPeca.value.toLowerCase();
 
 document.querySelectorAll(".card-item").forEach(c=>{
-let t=c.dataset.text;
+
+let texto = c.dataset.text;
+
+// pega OS do card
+let matchOS = texto.match(/os:\s*([^\s]+)/i);
+let osCard = matchOS ? limparOS(matchOS[1]).toLowerCase() : "";
+
+let condOS = !os || osCard === os;
+
 c.style.display =
-(!os||t.includes(os)) &&
-(!marca||t.includes(marca)) &&
-(!modelo||t.includes(modelo)) &&
-(!peca||t.includes(peca))
+condOS &&
+(!marca || texto.includes(marca)) &&
+(!modelo || texto.includes(modelo)) &&
+(!peca || texto.includes(peca))
 ? "" : "none";
+
 });
 }
 
@@ -258,7 +276,7 @@ tabela+=`<tr style="${saiu ? 'color:#ff3b3b' : ''}">
 </tr>`;
 
 // sets filtro
-osSet.add(r[3]);
+osSet.add(limparOS(r[3]));
 marcaSet.add(r[1]);
 modeloSet.add(r[2]);
 pecas.add(r[4]);
