@@ -267,8 +267,9 @@ tabela+=`<tr style="${saiu ? 'color:#ff3b3b' : ''}">
 </tr>`;
 
 // sets filtro
-let osLimpa = limparOS(r[3]);
-if(osLimpa) osSet.add(osLimpa);
+if(osFinal !== "SEM OS"){
+  osSet.add(osFinal);
+}
 marcaSet.add(r[1]);
 modeloSet.add(r[2]);
 pecas.add(r[4]);
