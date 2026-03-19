@@ -275,6 +275,26 @@ pecas.add(r[4]);
 
 let osFinal = "SEM OS";
 
+// 🔴 SE FOI RETIRADO → usa OS RECEPTOR
+if(saiu){
+
+  let osReceptor = (r[8] || "").toString().trim();
+
+  if(osReceptor !== ""){
+    osFinal = limparOS(osReceptor);
+  }
+
+}else{
+
+  // 🔵 SE NÃO FOI RETIRADO → só usa OS se tiver "reservado"
+  let osOriginal = (r[3] || "").toString().toLowerCase();
+
+  if(osOriginal.includes("reservado")){
+    osFinal = limparOS(r[3]);
+  }
+
+}
+
 // RETIRADO → usa OS RECEPTOR
 if(saiu){
   let osRec = (r[8] || "").toString().trim();
@@ -290,30 +310,31 @@ else{
   }
 }
 // cards
-cards+=`
-<div class="card-item" data-os="${limparOS(r[3])}"
-data-text="${r.join(" ").toLowerCase()}"
+cards += `
+<div class="card-item" data-text="${r.join(" ").toLowerCase()}" data-os="${osFinal}">
 
-<div><b>🔧 ${r[4]}</b></div>
-<div style="font-size:12px;color:#aaa">${r[1]} • ${r[2]}</div>
+  <div><b>🔧 ${r[4]}</b></div>
 
-<div>NUM: ${r[0]}</div>
-<div>OS: ${osFinal}</div>
-<div>RESP: ${r[9]||"-"}</div>
+  <div style="font-size:12px;color:#aaa">
+    ${(r[1]||"").toUpperCase()} • ${(r[2]||"").toUpperCase()}
+  </div>
 
-<div class="status ${saiu?"out":"in"}">
+  <div>NUM: ${r[0]}</div>
+  <div>OS: ${osFinal}</div>
+  <div>RESP: ${r[9] || "-"}</div>
 
-${
-saiu 
-? `🔴 RETIRADO • ${dataRetirada}` 
-: (r[3] && r[3].toLowerCase().includes("reservado") 
-    ? "🔵 RESERVADO"
-    : "🟢 EM ESTOQUE")
-}
+  <div class="status ${saiu ? "out" : "in"}">
+    ${
+      saiu 
+      ? `🔴 RETIRADO • ${dataRetirada}` 
+      : (r[3] && r[3].toLowerCase().includes("reservado")
+          ? "🔵 RESERVADO"
+          : "🟢 EM ESTOQUE")
+    }
+  </div>
 
 </div>
-
-</div>`;
+`;
 
 });
 
