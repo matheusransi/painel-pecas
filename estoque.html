@@ -273,7 +273,8 @@ tabela+=`<tr style="${saiu ? 'color:#ff3b3b' : ''}">
 </tr>`;
 
 // sets filtro
-osSet.add(limparOS(r[3]));
+let osLimpa = limparOS(r[3]);
+if(osLimpa) osSet.add(osLimpa);
 marcaSet.add(r[1]);
 modeloSet.add(r[2]);
 pecas.add(r[4]);
@@ -311,14 +312,16 @@ function fill(id,set){
 let el=document.getElementById(id);
 el.innerHTML="<option value=''>Todos</option>";
 
-let arr=[...set].filter(v=>v && v.trim() !== "");
+let arr=[...set];
 
+// 🔥 remove vazios
+arr = arr.filter(v=>v && v.trim() !== "");
+
+// 🔥 ordenação correta
 if(id==="filtroOS"){
-arr.sort((a,b)=>{
-let numA = parseInt(a) || 0;
-let numB = parseInt(b) || 0;
-return numB - numA;
-});
+arr.sort((a,b)=>parseInt(b)-parseInt(a)); // decrescente
+}else{
+arr.sort((a,b)=>a.localeCompare(b));
 }
 
 arr.forEach(v=>{
