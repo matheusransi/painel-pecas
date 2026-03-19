@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -22,7 +23,7 @@ function filtrarMovimento(){
   let tabela = document.getElementById("tHoje");
   tabela.innerHTML = "";
 
-  let solicitadas=0, compradas=0, entregues=0;
+  let solicitadas=0, compradas=0, entregues=0, valorHoje=0;
 
   dados.forEach(r=>{
     let dataSolic=parseBRDate((r["DATA SOLICITAÇÃO"] || r["DATA DE SOLICITAÇÃO"]));
@@ -35,6 +36,15 @@ function filtrarMovimento(){
     }
     if(sameDay(dataCompra,dataFiltro)){
       compradas++;
+
+      let valorNum = parseFloat((r["VALOR"] || "0")
+      .toString()
+      .replace("R$","")
+      .replace(/\./g,"")
+      .replace(",","."));
+
+      if(!isNaN(valorNum)) valorHoje += valorNum;
+
       tabela.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>Comprada</td></tr>`;
     }
     if(sameDay(dataEntrega,dataFiltro)){
@@ -46,6 +56,9 @@ function filtrarMovimento(){
   document.getElementById("solicitadasHoje").innerText=solicitadas;
   document.getElementById("compradasHoje").innerText=compradas;
   document.getElementById("entreguesHoje").innerText=entregues;
+
+  document.getElementById("valorHoje").innerText =
+  valorHoje.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
 function resetarFiltro(){
@@ -187,21 +200,101 @@ color:#fff;
 
 .messageUser{color:#ddd;margin-bottom:8px}
 .messageBot{color:#9cdcfe;margin-bottom:12px}
+  .os-card{
+background:#111;
+border:1px solid #2a2a2e;
+border-radius:14px;
+padding:16px;
+margin-bottom:12px;
+transition:0.2s;
+}
+
+.os-card:hover{
+transform:translateY(-3px);
+box-shadow:0 10px 25px rgba(0,0,0,0.5);
+}
+
+.os-top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:8px;
+}
+
+.os-id{
+font-weight:600;
+font-size:15px;
+}
+
+.os-body{
+font-size:13px;
+color:#a1a1aa;
+}
+
+.status{
+font-size:11px;
+padding:4px 10px;
+border-radius:20px;
+}
+
+/* CORES */
+.status-solicitada{background:#6b7280;}
+.status-comprada{background:#2563eb;}
+.status-entregue{background:#16a34a;}
+.status-atrasado{background:#e30613;}
 </style>
 </head>
 
 
 <body>
 
-<button onclick="toggleMenu()" style="position:fixed;top:20px;left:20px;background:#e30613;border:none;color:#fff;padding:10px;border-radius:8px;cursor:pointer;z-index:1000;">☰</button>
 
-<div id="sideMenu" style="position:fixed;top:0;left:-220px;width:220px;height:100%;background:#0f0f10;border-right:1px solid #27272a;transition:0.3s;padding-top:80px;z-index:999;">
-<a href="#" onclick="mostrar('hojeTab')" style="display:block;padding:15px;color:#fff;text-decoration:none;">Dashboard</a>
-<a href="./estoque.html" style="display:block;padding:15px;color:#fff;text-decoration:none;">Estoque</a>
+
+
+<div id="sideMenu" style="
+position:fixed;
+top:0;
+left:-250px;
+width:250px;
+height:100%;
+background:#0b0b0b;
+transition:0.3s;
+z-index:999;
+">
+
+<div style="display:flex;justify-content:space-between;align-items:center;padding:15px;">
+<span style="font-weight:bold;color:#fff;">Menu</span>
+<button onclick="toggleMenu()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;">✕</button>
 </div>
 
+<a href="index.html" class="menu-item">Solicitação de Peças</a>
+<a href="estoque.html" class="menu-item">Estoque</a>
+<a href="registro.html" class="menu-item">Registro de Peça</a>
 
-<header>Painel de Controle de Peças</header>
+</div>
+
+<style>
+.menu-item{
+display:block;
+padding:15px;
+color:#fff;
+text-decoration:none;
+}
+.menu-item:hover{
+background:#e30613;
+}
+</style>
+
+
+
+<header style="display:flex;align-items:center;gap:15px;">
+<button onclick="toggleMenu()" style="
+background:transparent;
+border:none;
+color:#fff;
+font-size:22px;
+cursor:pointer;
+">☰</button>Painel de Controle de Peças</header>
 
 <div class="container">
 
@@ -243,6 +336,7 @@ color:#fff;
 <div class="card"><span>Solicitadas hoje</span><h2 id="solicitadasHoje">0</h2></div>
 <div class="card"><span>Compradas hoje</span><h2 id="compradasHoje">0</h2></div>
 <div class="card"><span>Entregues hoje</span><h2 id="entreguesHoje">0</h2></div>
+<div class="card"><span>Valor gasto hoje</span><h2 id="valorHoje">R$ 0,00</h2></div>
 </div>
 
 <table>
@@ -254,7 +348,7 @@ color:#fff;
 <th>Status</th>
 </tr>
 </thead>
-<tbody id="tHoje"></tbody>
+<div id="tHoje"></div>
 </table>
 </div>
 
@@ -425,6 +519,7 @@ let hoje=new Date();
 let solicitadasHoje=0;
 let compradasHoje=0;
 let entreguesHoje=0;
+let valorHoje=0;
 
 let atrasadas=0;
 let prazo=0;
@@ -458,18 +553,60 @@ let valor=(r["VALOR"]||"").toLowerCase();
 
 if(sameDay(dataSolic,hoje)){
 solicitadasHoje++;
-tHoje.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>Solicitada hoje</td></tr>`;
-}
+tHoje.innerHTML += `
+<div class="os-card status-solicitada">
+  <div class="os-top">
+    <span class="os-id">OS ${r["OS"]}</span>
+    <span class="status status-solicitada">Solicitada</span>
+  </div>
+
+  <div class="os-body">
+    <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
+    <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
+  </div>
+</div>
+`;
 
 if(sameDay(dataCompra,hoje)){
 compradasHoje++;
-tHoje.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>Comprada hoje</td></tr>`;
-}
+
+let valorNum = parseFloat((r["VALOR"] || "0")
+.toString()
+.replace("R$","")
+.replace(/\./g,"")
+.replace(",","."));
+
+if(!isNaN(valorNum)) valorHoje += valorNum;
+
+tHoje.innerHTML += `
+<div class="os-card status-comprada">
+  <div class="os-top">
+    <span class="os-id">OS ${r["OS"]}</span>
+    <span class="status status-comprada">Comprada</span>
+  </div>
+
+  <div class="os-body">
+    <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
+    <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
+  </div>
+</div>
+`;
 
 if(sameDay(dataEntrega,hoje)){
 entreguesHoje++;
-tHoje.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>Entregue hoje</td></tr>`;
-}
+tHoje.innerHTML += `
+<div class="os-card status-entregue">
+  <div class="os-top">
+    <span class="os-id">OS ${r["OS"]}</span>
+    <span class="status status-entregue">Entregue</span>
+  </div>
+
+  <div class="os-body">
+    <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
+    <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
+  </div>
+</div>
+`;
 
 if(dataEntrega) entregues++;
 
@@ -485,12 +622,37 @@ if(hojeZ > prazoEntrega){
 atrasadas++;
 let diff=Math.floor((hoje-prazoEntrega)/(1000*60*60*24));
 
-tA.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>${formatar(prazoEntrega)}</td><td>${diff}</td></tr>`;
+tA.innerHTML += `
+<div class="os-card status-atrasado">
+  <div class="os-top">
+    <span class="os-id">OS ${r["OS"]}</span>
+    <span class="status status-atrasado">Atrasado (${diff} dias)</span>
+  </div>
 
+  <div class="os-body">
+    <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
+    <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
+    <div><b>Prazo:</b> ${formatar(prazoEntrega)}</div>
+  </div>
+</div>
+`;
 }else{
 
 prazo++;
-tP.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>${formatar(prazoEntrega)}</td></tr>`;
+tP.innerHTML += `
+<div class="os-card">
+  <div class="os-top">
+    <span class="os-id">OS ${r["OS"]}</span>
+    <span class="status">No prazo</span>
+  </div>
+
+  <div class="os-body">
+    <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
+    <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
+    <div><b>Prazo:</b> ${formatar(prazoEntrega)}</div>
+  </div>
+</div>
+`;
 
 }
 
@@ -510,6 +672,9 @@ document.getElementById("entregues").innerText=entregues;
 document.getElementById("solicitadasHoje").innerText=solicitadasHoje;
 document.getElementById("compradasHoje").innerText=compradasHoje;
 document.getElementById("entreguesHoje").innerText=entreguesHoje;
+
+document.getElementById("valorHoje").innerText =
+valorHoje.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 
 popularOS();
 
@@ -650,7 +815,7 @@ function filtrarMovimento(){
   let tabela = document.getElementById("tHoje");
   tabela.innerHTML = "";
 
-  let solicitadas=0, compradas=0, entregues=0;
+  let solicitadas=0, compradas=0, entregues=0, valorHoje=0;
 
   dados.forEach(r=>{
     let dataSolic=parseBRDate((r["DATA SOLICITAÇÃO"] || r["DATA DE SOLICITAÇÃO"]));
@@ -663,6 +828,15 @@ function filtrarMovimento(){
     }
     if(sameDay(dataCompra,dataFiltro)){
       compradas++;
+
+      let valorNum = parseFloat((r["VALOR"] || "0")
+      .toString()
+      .replace("R$","")
+      .replace(/\./g,"")
+      .replace(",","."));
+
+      if(!isNaN(valorNum)) valorHoje += valorNum;
+
       tabela.innerHTML+=`<tr><td>${r["OS"]}</td><td>${r["DESCRIÇÃO DA PEÇA"]}</td><td>${r["FORNECEDOR"]}</td><td>Comprada</td></tr>`;
     }
     if(sameDay(dataEntrega,dataFiltro)){
@@ -674,6 +848,9 @@ function filtrarMovimento(){
   document.getElementById("solicitadasHoje").innerText=solicitadas;
   document.getElementById("compradasHoje").innerText=compradas;
   document.getElementById("entreguesHoje").innerText=entregues;
+
+  document.getElementById("valorHoje").innerText =
+  valorHoje.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
 function resetarFiltro(){
