@@ -341,10 +341,28 @@ popularDatas();
 
 
 function popularDatas(){
+
 let sel=document.getElementById("dataSelect");
-sel.innerHTML="<option>Data</option>";
-[...new Set(dados.map(r=>r[7]).filter(Boolean))]
-.forEach(d=>sel.innerHTML+=`<option>${d}</option>`);
+sel.innerHTML="<option value=''>Selecione a data</option>";
+
+let datas = dados
+.map(r => (r[7] || "").trim())
+.filter(d => d !== "");
+
+// remove duplicadas
+datas = [...new Set(datas)];
+
+// ordena (mais recente primeiro)
+datas.sort((a,b)=>{
+let da = a.split("/").reverse().join("-");
+let db = b.split("/").reverse().join("-");
+return new Date(db) - new Date(da);
+});
+
+datas.forEach(d=>{
+sel.innerHTML += `<option>${d}</option>`;
+});
+
 }
 
 function filtrarData(){
