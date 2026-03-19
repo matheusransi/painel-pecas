@@ -226,7 +226,7 @@ dados.forEach(r=>{
 let tem=reservado(r[3]);
 let saiu = r[9] && r[9].trim() !== "";
 let dataRetirada = r[7] || "";
-  
+
 if(r[7]) ret++;
 if(r[7]==hojeStr) hoje++;
 
@@ -279,17 +279,21 @@ document.getElementById("cardsEstoque").innerHTML=cards;
 
 // filtros
 function fill(id,set){
-let arr = [...set].filter(Boolean);
+let el=document.getElementById(id);
+el.innerHTML="<option value=''>Todos</option>";
 
-if(id === "filtroOS"){
-arr.sort((a,b)=> Number(b) - Number(a)); // decrescente
+let arr=[...set].filter(v=>v && v.trim() !== "");
+
+if(id==="filtroOS"){
+arr.sort((a,b)=>Number(b)-Number(a)); // decrescente
 }else{
-arr.sort((a,b)=> a.localeCompare(b)); // alfabético
+arr.sort((a,b)=>a.localeCompare(b)); // alfabético
 }
 
 arr.forEach(v=>{
-el.innerHTML += `<option>${v}</option>`;
+el.innerHTML+=`<option>${v}</option>`;
 });
+}
 fill("filtroOS",osSet);
 fill("filtroMarca",marcaSet);
 fill("filtroModelo",modeloSet);
