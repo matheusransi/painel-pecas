@@ -407,10 +407,35 @@ popularDatas();
 
 
 function popularDatas(){
-let sel=document.getElementById("dataSelect");
-sel.innerHTML="<option>Data</option>";
-[...new Set(dados.map(r=>r[7]).filter(Boolean))]
-.forEach(d=>sel.innerHTML+=`<option>${d}</option>`);
+
+let sel = document.getElementById("dataSelect");
+
+if(!sel) return;
+
+sel.innerHTML = "<option value=''>Data</option>";
+
+let datas = [];
+
+dados.forEach(r=>{
+  if(r[7] && r[7].trim() !== ""){
+    datas.push(r[7]);
+  }
+});
+
+// remove duplicadas
+datas = [...new Set(datas)];
+
+// ordena mais recente primeiro
+datas.sort((a,b)=>{
+  let da = a.split("/").reverse().join("-");
+  let db = b.split("/").reverse().join("-");
+  return new Date(db) - new Date(da);
+});
+
+datas.forEach(d=>{
+  sel.innerHTML += `<option>${d}</option>`;
+});
+
 }
 
 function filtrarData(){
@@ -419,7 +444,9 @@ let html="";
 dados.forEach(r=>{
 if(r[7]==d){html+=`<tr><td>${r[4]}</td><td>${r[9]}</td><td>${r[7]}</td></tr>`;}
 });
-document.getElementById("tMov").innerHTML=html;
+let tabela = document.getElementById("tMov");
+if(tabela){
+  tabela.innerHTML = html;
 }
 
 function chave(marca,modelo){
