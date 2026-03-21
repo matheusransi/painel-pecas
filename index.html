@@ -618,6 +618,9 @@ tA.innerHTML += `
 prazo++;
 let dataCompraFormatada = formatar(dataCompra);
 
+let prazoFormatado = formatar(prazoEntrega);
+let dataCompraFormatada = formatar(dataCompra);
+
 tP.innerHTML += `
 <div class="os-card">
   <div class="os-top">
@@ -629,12 +632,10 @@ tP.innerHTML += `
     <div><b>Peça:</b> ${r["DESCRIÇÃO DA PEÇA"]}</div>
     <div><b>Fornecedor:</b> ${r["FORNECEDOR"]}</div>
     <div><b>Compra:</b> ${dataCompraFormatada}</div>
+    <div><b>Prazo:</b> ${prazoFormatado}</div>
   </div>
 </div>
 `;
-
-}
-
 }
 
 if(!valor || valor.includes("cot")){
