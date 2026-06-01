@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Painel de Controle de Peças - VRZ</title>
+    <title>Painel VRZ - Gestão de Peças</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -68,12 +68,11 @@
 
 <div class="container">
     <div class="dashboard">
-        <div class="stat-card"><span>Total Ativas</span><h2 id="total-pecas">0</h2></div>
         <div class="stat-card"><span>Atrasadas</span><h2 id="total-atrasadas" style="color:#f87171">0</h2></div>
         <div class="stat-card"><span>No Prazo</span><h2 id="total-prazo" style="color:#34d399">0</h2></div>
         <div class="stat-card"><span>Entregues Hoje</span><h2 id="total-entregues">0</h2></div>
         <div class="stat-card">
-            <span>Ranking Solicitantes</span>
+            <span>Ranking Solicitantes (Mês)</span>
             <table id="ranking-corpo"><tbody></tbody></table>
         </div>
     </div>
@@ -92,13 +91,11 @@
 </div>
 
 <script>
-    const URL_PRINCIPAL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=1419345505&single=true&output=csv";
-    
-    // IMPORTANTE: Para o stock funcionar sem erro, o GID abaixo deve ser o da aba específica de stock.
-    // Se deixar igual ao de cima, o sistema desativa a verificação para não gerar falsos positivos.
-    const URL_ESTOQUE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=TROQUE_PELO_GID_DO_ESTOQUE&single=true&output=csv";
+    // Configuração dos links com o GID 1283911979 fornecido
+    const URL_SOLICITACOES = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=1419345505&single=true&output=csv";
+    const URL_ESTOQUE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=1283911979&single=true&output=csv";
 
-    let dadosFull = [], stockFull = [];
+    let dadosSol = [], dadosEst = [];
 
     function toggleMenu() {
         let m = document.getElementById("sideMenu");
@@ -121,14 +118,14 @@
     }
 
     function ehHoje(d) {
-        const h = new Date(); // Data do sistema: 01/06/2026
+        const h = new Date(); // Hoje: 01/06/2026
         return d && d.getDate() === h.getDate() && d.getMonth() === h.getMonth() && d.getFullYear() === h.getFullYear();
     }
 
     function verificarStock(peca, modelo) {
-        if (!peca || !modelo || URL_PRINCIPAL === URL_ESTOQUE || URL_ESTOQUE.includes("TROQUE")) return null;
+        if (!peca || !modelo || dadosEst.length === 0) return null;
         let pB = peca.toUpperCase().trim(), mB = modelo.toUpperCase().trim();
-        return stockFull.find(e => {
+        return dadosEst.find(e => {
             let pE = (e["PEÇA"] || e["DESCRIÇÃO DA PEÇA"] || "").toUpperCase().trim();
             let mE = (e["MODELO"] || e["VEÍCULO"] || "").toUpperCase().trim();
             let saida = (e["DATA RETIRADA"] || e["OS RECEPTOR"] || "").trim();
@@ -137,16 +134,19 @@
     }
 
     function carregar() {
-        Papa.parse(URL_PRINCIPAL + "&t=" + new Date().getTime(), {
+        // Carrega o estoque primeiro
+        Papa.parse(URL_ESTOQUE + "&t=" + new Date().getTime(), {
             download: true, header: true, skipEmptyLines: true,
-            complete: function(res) {
-                dadosFull = res.data;
-                if (!URL_ESTOQUE.includes("TROQUE") && URL_PRINCIPAL !== URL_ESTOQUE) {
-                    Papa.parse(URL_ESTOQUE, { download: true, header: true, complete: function(rE) {
-                        stockFull = rE.data;
+            complete: function(resE) {
+                dadosEst = resE.data;
+                // Depois carrega as solicitações
+                Papa.parse(URL_SOLICITACOES + "&t=" + new Date().getTime(), {
+                    download: true, header: true, skipEmptyLines: true,
+                    complete: function(resS) {
+                        dadosSol = resS.data;
                         processar();
-                    }});
-                } else { processar(); }
+                    }
+                });
             }
         });
     }
@@ -155,10 +155,10 @@
         const agora = new Date(); 
         agora.setHours(0,0,0,0);
 
-        let cT = 0, cA = 0, cP = 0, cE = 0;
+        let cA = 0, cP = 0, cE = 0;
         let gH = {}, gA = {}, gP = {}, gC = {}, rank = {};
 
-        dadosFull.forEach(r => {
+        dadosSol.forEach(r => {
             const os = r["OS"] || "S/N";
             const mod = (r["MODELO"] || r["VEÍCULO"] || "N/A").toUpperCase();
             const peca = r["DESCRIÇÃO DA PEÇA"] || r["PEÇA"] || "Peça S/N";
@@ -170,11 +170,14 @@
             let pz = null;
             for (let k in r) { if (k.toUpperCase().includes("PRAZO")) pz = converterData(r[k]); }
 
-            if (dS && dS.getMonth() === agora.getMonth()) rank[sol] = (rank[sol] || 0) + 1;
+            // Lógica do Ranking (Mês Atual: Junho)
+            if (dS && dS.getMonth() === agora.getMonth()) {
+                rank[sol] = (rank[sol] || 0) + 1;
+            }
 
             const item = { desc: peca, forn: r["FORNECEDOR"] || "-", st: "", cl: "", det: "" };
 
-            // 1. Movimento Hoje
+            // 1. Movimento Hoje (01/06/2026)
             if (ehHoje(dS) || ehHoje(dC) || ehHoje(dEn)) {
                 if (ehHoje(dEn)) cE++;
                 if (!gH[os]) gH[os] = { m: mod, i: [] };
@@ -185,7 +188,7 @@
 
             // 2. Atraso e Prazo
             if (!dEn && pz) {
-                cT++; pz.setHours(0,0,0,0);
+                pz.setHours(0,0,0,0);
                 if (agora > pz) {
                     cA++; if (!gA[os]) gA[os] = { m: mod, i: [] };
                     item.st = "ATRASADA"; item.cl = "bg-atrasada";
@@ -202,43 +205,4 @@
             // 3. Cotação
             let val = (r["VALOR"] || "").toLowerCase();
             if (!val || val.includes("cot")) {
-                if (!gC[os]) gC[os] = { m: mod, i: [] };
-                item.st = "COTAR"; item.cl = "bg-atrasada";
-                gC[os].i.push({...item});
-            }
-        });
-
-        desenhar('aba-hoje', gH, "#e30613");
-        desenhar('aba-atraso', gA, "#6b7280");
-        desenhar('aba-prazo', gP, "#15803d");
-        desenhar('aba-cotar', gC, "#1d4ed8");
-
-        document.getElementById('total-pecas').innerText = cT;
-        document.getElementById('total-atrasadas').innerText = cA;
-        document.getElementById('total-prazo').innerText = cP;
-        document.getElementById('total-entregues').innerText = cE;
-
-        let rFinal = Object.entries(rank).sort((a,b) => b[1] - a[1]).slice(0,3);
-        document.querySelector('#ranking-corpo tbody').innerHTML = rFinal.map(i => `<tr><td>${i[0]}</td><td style="text-align:right"><b>${i[1]}</b></td></tr>`).join('');
-    }
-
-    function desenhar(containerId, grupo, cor) {
-        const div = document.getElementById(containerId);
-        div.innerHTML = "";
-        for (let os in grupo) {
-            let parts = grupo[os].i.map(i => {
-                let s = verificarStock(i.desc, grupo[os].m);
-                let tag = s ? `<div class="stock-tag">✓ STOCK (${s["NUMERAÇÃO"] || s["NÚMERO"] || "S/L"})</div>` : `<div class="stock-none">✕ FALTA</div>`;
-                let mostrar = (URL_PRINCIPAL !== URL_ESTOQUE && !URL_ESTOQUE.includes("TROQUE")) ? tag : "";
-                return `<div class="part-row"><div class="part-main"><div>${i.desc}</div><div class="part-sub">Forn: ${i.forn} ${i.det ? ' | '+i.det : ''}</div>${mostrar}</div><span class="badge ${i.cl}">${i.st}</span></div>`;
-            }).join('');
-            div.innerHTML += `<div class="os-card"><div class="os-header" style="border-left:4px solid ${cor}"><div class="os-info">OS ${os} <span class="os-model">${grupo[os].m}</span></div><div style="font-size:10px; color:var(--text)">${grupo[os].i.length} Peça(s)</div></div><div class="os-body">${parts}</div></div>`;
-        }
-        if (Object.keys(grupo).length === 0) div.innerHTML = "<div style='color:var(--text); padding:20px;'>Sem dados para esta categoria.</div>";
-    }
-
-    carregar();
-    setInterval(carregar, 30000);
-</script>
-</body>
-</html>
+                if
