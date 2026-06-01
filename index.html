@@ -2,15 +2,14 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Controle de Reposição - Blindadora</title>
+    <title>Painel VRZ - Gestão de Peças</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
     <style>
         :root { --primary: #e30613; --bg: #0f0f10; --card: #18181b; --border: #27272a; --text: #a1a1aa; }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: #fff; overflow-x: hidden; }
-        
-        header { background: #000; padding: 20px; font-size: 20px; font-weight: 700; border-bottom: 3px solid var(--primary); display: flex; align-items: center; gap: 15px; position: sticky; top: 0; z-index: 100; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: #fff; }
+        header { background: #000; padding: 20px; font-size: 20px; font-weight: 700; border-bottom: 3px solid var(--primary); display: flex; align-items: center; gap: 15px; }
         .container { padding: 25px; max-width: 1400px; margin: auto; }
         
         /* Dashboard */
@@ -24,7 +23,7 @@
         .tabs button { background: var(--card); border: 1px solid var(--border); padding: 12px 18px; color: #fff; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         .tabs button:hover, .tabs button.active { background: var(--primary); border-color: var(--primary); }
 
-        /* OS Cards Layout */
+        /* Cards Layout */
         .os-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 15px; }
         .os-card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; height: fit-content; }
         .os-header { background: #111; padding: 12px 15px; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
@@ -37,19 +36,18 @@
         .part-main { font-size: 13px; font-weight: 500; flex: 1; }
         .part-sub { font-size: 11px; color: var(--text); margin-top: 3px; }
         
-        .badge { font-size: 9px; padding: 3px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+        .badge { font-size: 9px; padding: 3px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
         .bg-atrasada { background: #450a0a; color: #f87171; }
         .bg-prazo { background: #064e3b; color: #34d399; }
         .bg-hoje { background: #3f3f46; color: #fff; }
-        .bg-cotacao { background: #1e3a8a; color: #60a5fa; }
         
         .stock-tag { background: #16a34a; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; margin-top: 5px; display: inline-block; font-weight: 800; }
         .stock-none { background: #dc2626; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; margin-top: 5px; display: inline-block; font-weight: 800; }
 
-        /* SIDEBAR RESTAURADA */
-        #sideMenu { position: fixed; top: 0; left: -280px; width: 250px; height: 100%; background: #000; transition: 0.4s; z-index: 1000; padding: 20px; border-right: 1px solid var(--border); box-shadow: 10px 0 20px rgba(0,0,0,0.5); }
-        .menu-item { display: block; padding: 12px; color: #fff; text-decoration: none; border-radius: 6px; margin-bottom: 5px; transition: 0.2s; }
-        .menu-item:hover { background: var(--primary); }
+        /* Sidebar */
+        #sideMenu { position: fixed; top: 0; left: -280px; width: 250px; height: 100%; background: #000; transition: 0.4s; z-index: 1000; padding: 20px; border-right: 1px solid var(--border); }
+        .menu-link { display: block; padding: 12px; color: #fff; text-decoration: none; border-radius: 6px; margin-bottom: 5px; }
+        .menu-link:hover { background: var(--primary); }
 
         .hidden { display: none; }
         table { width: 100%; font-size: 12px; margin-top: 10px; border-collapse: collapse; }
@@ -59,13 +57,13 @@
 <body>
 
 <div id="sideMenu">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-        <b style="color:var(--primary); font-size: 18px;">MENU VRZ</b>
-        <button onclick="toggleMenu()" style="background:none; border:none; color:#fff; cursor:pointer; font-size: 20px;">✕</button>
+    <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
+        <b style="color:var(--primary)">MENU VRZ</b>
+        <button onclick="toggleMenu()" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button>
     </div>
-    <a href="index.html" class="menu-item">Solicitação de Peças</a>
-    <a href="estoque.html" class="menu-item">Estoque Geral</a>
-    <a href="registro.html" class="menu-item">Registro de Peça</a>
+    <a href="index.html" class="menu-link">Solicitação de Peças</a>
+    <a href="estoque.html" class="menu-link">Estoque Geral</a>
+    <a href="registro.html" class="menu-link">Registrar Peça</a>
 </div>
 
 <header>
@@ -75,12 +73,12 @@
 
 <div class="container">
     <div class="dashboard">
-        <div class="stat-card"><span>Total Ativas</span><h2 id="total-pecas">0</h2></div>
-        <div class="stat-card"><span>Atrasadas</span><h2 id="total-atrasadas" style="color:#f87171">0</h2></div>
-        <div class="stat-card"><span>No Prazo</span><h2 id="total-prazo" style="color:#34d399">0</h2></div>
-        <div class="stat-card"><span>Entregues Hoje</span><h2 id="total-entregues">0</h2></div>
+        <div class="stat-card"><span>Total Ativas</span><h2 id="tot-pecas">0</h2></div>
+        <div class="stat-card"><span>Atrasadas</span><h2 id="tot-atraso" style="color:#f87171">0</h2></div>
+        <div class="stat-card"><span>No Prazo</span><h2 id="tot-prazo" style="color:#34d399">0</h2></div>
+        <div class="stat-card"><span>Entregues Hoje</span><h2 id="tot-hoje">0</h2></div>
         <div class="stat-card">
-            <span>Top 3 Solicitantes (Mês)</span>
+            <span>Ranking Solicitantes (Mês)</span>
             <table id="ranking-corpo"><tbody></tbody></table>
         </div>
     </div>
@@ -99,7 +97,6 @@
 </div>
 
 <script>
-    // Configurações de Links
     const URL_SOLICITACOES = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=1419345505&single=true&output=csv";
     const URL_ESTOQUE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=1283911979&single=true&output=csv";
 
@@ -122,7 +119,6 @@
         let s = v.toString().trim();
         let p = s.includes("/") ? s.split("/") : s.split("-");
         if (p.length !== 3) return null;
-        // Lida com DD/MM/AAAA ou AAAA-MM-DD
         return s.includes("/") ? new Date(p[2], p[1]-1, p[0]) : new Date(p[0], p[1]-1, p[2]);
     }
 
@@ -138,13 +134,11 @@
             let pE = (e["PEÇA"] || e["DESCRIÇÃO DA PEÇA"] || "").toUpperCase().trim();
             let mE = (e["MODELO"] || e["VEÍCULO"] || "").toUpperCase().trim();
             let saida = (e["DATA RETIRADA"] || e["OS RECEPTOR"] || "").trim();
-            // Match parcial na peça e exato no modelo, sem data de retirada
             return mE === mB && pE.includes(pB) && saida === "";
         });
     }
 
     function carregar() {
-        // Carregamento Sequencial para garantir integridade
         Papa.parse(URL_ESTOQUE + "&t=" + new Date().getTime(), {
             download: true, header: true, skipEmptyLines: true,
             complete: function(resE) {
@@ -179,14 +173,10 @@
             let pz = null;
             for (let k in r) { if (k.toUpperCase().includes("PRAZO")) pz = converterData(r[k]); }
 
-            // Lógica do Ranking (Mês Atual)
-            if (dS && dS.getMonth() === agora.getMonth()) {
-                rank[sol] = (rank[sol] || 0) + 1;
-            }
+            if (dS && dS.getMonth() === agora.getMonth()) rank[sol] = (rank[sol] || 0) + 1;
 
             const item = { desc: peca, forn: r["FORNECEDOR"] || "-", st: "", cl: "", det: "" };
 
-            // 1. Movimento Hoje (01/06/2026)
             if (ehHoje(dS) || ehHoje(dC) || ehHoje(dEn)) {
                 if (ehHoje(dEn)) cE++;
                 if (!gH[os]) gH[os] = { m: mod, i: [] };
@@ -195,7 +185,6 @@
                 gH[os].i.push({...item});
             }
 
-            // 2. Atraso e Prazo
             if (!dEn && pz) {
                 pz.setHours(0,0,0,0);
                 if (agora > pz) {
@@ -211,11 +200,10 @@
                 }
             }
 
-            // 3. Cotação
             let val = (r["VALOR"] || "").toLowerCase();
             if (!val || val.includes("cot")) {
                 if (!gC[os]) gC[os] = { m: mod, i: [] };
-                item.st = "COTAR"; item.cl = "bg-cotacao";
+                item.st = "COTAR"; item.cl = "bg-atrasada";
                 gC[os].i.push({...item});
             }
         });
@@ -225,16 +213,13 @@
         desenhar('aba-prazo', gP, "#15803d");
         desenhar('aba-cotar', gC, "#1d4ed8");
 
-        document.getElementById('total-pecas').innerText = dadosSol.length;
-        document.getElementById('total-atrasadas').innerText = cA;
-        document.getElementById('total-prazo').innerText = cP;
-        document.getElementById('total-entregues').innerText = cE;
+        document.getElementById('tot-pecas').innerText = dadosSol.length;
+        document.getElementById('tot-atraso').innerText = cA;
+        document.getElementById('tot-prazo').innerText = cP;
+        document.getElementById('tot-hoje').innerText = cE;
 
-        // Ranking Solicitantes
         let rSorted = Object.entries(rank).sort((a,b) => b[1] - a[1]).slice(0,3);
-        document.querySelector('#ranking-corpo tbody').innerHTML = rSorted.length > 0 
-            ? rSorted.map(i => `<tr><td>${i[0]}</td><td style="text-align:right"><b>${i[1]}</b></td></tr>`).join('')
-            : "<tr><td colspan='2' style='text-align:center; color:var(--text)'>Sem pedidos este mês</td></tr>";
+        document.querySelector('#ranking-corpo tbody').innerHTML = rSorted.map(i => `<tr><td>${i[0]}</td><td style="text-align:right"><b>${i[1]}</b></td></tr>`).join('');
     }
 
     function desenhar(containerId, grupo, cor) {
@@ -244,14 +229,13 @@
             let parts = grupo[os].i.map(i => {
                 let s = verificarStock(i.desc, grupo[os].m);
                 let tag = s ? `<div class="stock-tag">✓ STOCK (${s["NUMERAÇÃO"] || s["NÚMERO"] || "S/L"})</div>` : `<div class="stock-none">✕ FALTA</div>`;
-                return `<div class="part-row"><div class="part-main"><div>${i.desc}</div><div class="part-sub">Forn: ${i.forn} ${i.det ? ' | '+i.det : ''}</div>${tag}</div><span class="badge ${i.cl}">${i.st}</span></div>`;
+                return `<div class="part-row"><div class="part-main"><div>${i.desc}</div><div style="font-size:11px;color:var(--text)">Forn: ${i.forn} ${i.det ? ' | '+i.det : ''}</div>${tag}</div><span class="badge ${i.cl}">${i.st}</span></div>`;
             }).join('');
             div.innerHTML += `<div class="os-card"><div class="os-header" style="border-left:4px solid ${cor}"><div class="os-info">OS ${os} <span class="os-model">${grupo[os].m}</span></div><div style="font-size:10px; color:var(--text)">${grupo[os].i.length} Peça(s)</div></div><div class="os-body">${parts}</div></div>`;
         }
-        if (Object.keys(grupo).length === 0) div.innerHTML = "<div style='color:var(--text); padding:40px; text-align:center;'>Nenhuma movimentação encontrada para esta categoria.</div>";
+        if (Object.keys(grupo).length === 0) div.innerHTML = "<div style='color:var(--text); padding:20px; text-align:center;'>Nenhuma movimentação hoje.</div>";
     }
 
-    // Inicialização
     carregar();
     setInterval(carregar, 30000);
 </script>
