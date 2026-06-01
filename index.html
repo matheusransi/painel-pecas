@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Painel VRZ - Gestão de Peças</title>
+    <title>Painel de Controle - VRZ</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -12,46 +12,32 @@
         header { background: #000; padding: 20px; font-size: 20px; font-weight: 700; border-bottom: 3px solid var(--primary); display: flex; align-items: center; gap: 15px; }
         .container { padding: 25px; max-width: 1400px; margin: auto; }
         
-        /* Dashboard */
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
         .stat-card span { color: var(--text); font-size: 11px; text-transform: uppercase; }
         .stat-card h2 { margin: 8px 0 0 0; font-size: 28px; }
 
-        /* Tabs */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tabs button { background: var(--card); border: 1px solid var(--border); padding: 12px 18px; color: #fff; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .tabs button:hover, .tabs button.active { background: var(--primary); border-color: var(--primary); }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tabs button { background: var(--card); border: 1px solid var(--border); padding: 12px 18px; color: #fff; border-radius: 8px; cursor: pointer; }
+        .tabs button.active { background: var(--primary); }
 
-        /* Cards Layout */
-        .os-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 15px; }
-        .os-card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; height: fit-content; }
-        .os-header { background: #111; padding: 12px 15px; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .os-info { font-weight: 700; font-size: 14px; }
-        .os-model { color: var(--primary); font-weight: 800; margin-left: 5px; text-transform: uppercase; }
-        .os-body { padding: 15px; }
+        .os-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 15px; }
+        .os-card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 15px; }
+        .os-header { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .os-model { color: var(--primary); font-weight: 800; }
         
-        .part-row { padding: 10px 0; border-bottom: 1px solid #27272a; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .part-row:last-child { border-bottom: none; }
-        .part-main { font-size: 13px; font-weight: 500; flex: 1; }
-        .part-sub { font-size: 11px; color: var(--text); margin-top: 3px; }
-        
-        .badge { font-size: 9px; padding: 3px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
+        .part-item { padding: 8px 0; border-bottom: 1px solid #27272a; display: flex; justify-content: space-between; align-items: center; }
+        .badge { font-size: 10px; padding: 4px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
+        .bg-hoje { background: #3f3f46; color: #fff; }
         .bg-atrasada { background: #450a0a; color: #f87171; }
         .bg-prazo { background: #064e3b; color: #34d399; }
-        .bg-hoje { background: #3f3f46; color: #fff; }
-        
-        .stock-tag { background: #16a34a; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; margin-top: 5px; display: inline-block; font-weight: 800; }
-        .stock-none { background: #dc2626; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; margin-top: 5px; display: inline-block; font-weight: 800; }
 
-        /* Sidebar */
+        .stock-tag { background: #16a34a; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; margin-top: 5px; display: inline-block; }
+
         #sideMenu { position: fixed; top: 0; left: -280px; width: 250px; height: 100%; background: #000; transition: 0.4s; z-index: 1000; padding: 20px; border-right: 1px solid var(--border); }
-        .menu-link { display: block; padding: 12px; color: #fff; text-decoration: none; border-radius: 6px; margin-bottom: 5px; }
+        .menu-link { display: block; padding: 12px; color: #fff; text-decoration: none; border-radius: 6px; }
         .menu-link:hover { background: var(--primary); }
-
         .hidden { display: none; }
-        table { width: 100%; font-size: 12px; margin-top: 10px; border-collapse: collapse; }
-        td { padding: 6px 0; border-bottom: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -61,179 +47,169 @@
         <b style="color:var(--primary)">MENU VRZ</b>
         <button onclick="toggleMenu()" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button>
     </div>
-    <a href="index.html" class="menu-link">Solicitação de Peças</a>
-    <a href="estoque.html" class="menu-link">Estoque Geral</a>
-    <a href="registro.html" class="menu-link">Registrar Peça</a>
+    <a href="index.html" class="menu-link">Painel Principal</a>
+    <a href="estoque.html" class="menu-link">Estoque</a>
 </div>
 
 <header>
     <button onclick="toggleMenu()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">☰</button>
-    Painel de Controle de Peças
+    Controle de Reposição - Blindadora
 </header>
 
 <div class="container">
     <div class="dashboard">
-        <div class="stat-card"><span>Total Ativas</span><h2 id="tot-pecas">0</h2></div>
+        <div class="stat-card"><span>Total Ativas</span><h2 id="tot-geral">0</h2></div>
         <div class="stat-card"><span>Atrasadas</span><h2 id="tot-atraso" style="color:#f87171">0</h2></div>
         <div class="stat-card"><span>No Prazo</span><h2 id="tot-prazo" style="color:#34d399">0</h2></div>
-        <div class="stat-card"><span>Entregues Hoje</span><h2 id="tot-hoje">0</h2></div>
-        <div class="stat-card">
-            <span>Ranking Solicitantes (Mês)</span>
-            <table id="ranking-corpo"><tbody></tbody></table>
-        </div>
+        <div class="stat-card"><span>Ranking (Mês)</span><table style="width:100%; font-size:12px;"><tbody id="rank-body"></tbody></table></div>
     </div>
 
     <div class="tabs">
-        <button onclick="aba('aba-hoje', this)" class="active">Movimento Hoje</button>
-        <button onclick="aba('aba-atraso', this)">Atrasadas</button>
-        <button onclick="aba('aba-prazo', this)">No Prazo</button>
-        <button onclick="aba('aba-cotar', this)">Cotação</button>
+        <button onclick="switchAba('aba-hoje', this)" class="active">Movimento Hoje</button>
+        <button onclick="switchAba('aba-atraso', this)">Atrasadas</button>
+        <button onclick="switchAba('aba-prazo', this)">No Prazo</button>
     </div>
 
     <div id="aba-hoje" class="tab-content os-grid"></div>
     <div id="aba-atraso" class="tab-content os-grid hidden"></div>
     <div id="aba-prazo" class="tab-content os-grid hidden"></div>
-    <div id="aba-cotar" class="tab-content os-grid hidden"></div>
 </div>
 
 <script>
-    const URL_SOLICITACOES = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=1419345505&single=true&output=csv";
+    const URL_SOLIC = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=1419345505&single=true&output=csv";
     const URL_ESTOQUE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=1283911979&single=true&output=csv";
 
-    let dadosSol = [], dadosEst = [];
+    let dadosS = [], dadosE = [];
 
     function toggleMenu() {
         let m = document.getElementById("sideMenu");
-        m.style.left = (m.style.left === "0px" || m.style.left === "0") ? "-280px" : "0px";
+        m.style.left = m.style.left === "0px" ? "-280px" : "0px";
     }
 
-    function aba(id, btn) {
+    function switchAba(id, btn) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
         document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.remove('hidden');
         btn.classList.add('active');
     }
 
-    function converterData(v) {
-        if (!v) return null;
-        let s = v.toString().trim();
-        let p = s.includes("/") ? s.split("/") : s.split("-");
-        if (p.length !== 3) return null;
-        return s.includes("/") ? new Date(p[2], p[1]-1, p[0]) : new Date(p[0], p[1]-1, p[2]);
+    // Função para pegar o valor de uma coluna ignorando espaços e maiúsculas
+    function getV(row, key) {
+        const found = Object.keys(row).find(k => k.trim().toUpperCase() === key.toUpperCase());
+        return found ? row[found].toString().trim() : "";
     }
 
-    function ehHoje(d) {
-        const h = new Date(); // Hoje: 01/06/2026
+    function parseD(v) {
+        if (!v) return null;
+        const p = v.includes("/") ? v.split("/") : v.split("-");
+        return v.includes("/") ? new Date(p[2], p[1]-1, p[0]) : new Date(p[0], p[1]-1, p[2]);
+    }
+
+    function isHoje(d) {
+        const h = new Date(); // 01/06/2026
         return d && d.getDate() === h.getDate() && d.getMonth() === h.getMonth() && d.getFullYear() === h.getFullYear();
     }
 
-    function verificarStock(peca, modelo) {
-        if (!peca || !modelo || dadosEst.length === 0) return null;
-        let pB = peca.toUpperCase().trim(), mB = modelo.toUpperCase().trim();
-        return dadosEst.find(e => {
-            let pE = (e["PEÇA"] || e["DESCRIÇÃO DA PEÇA"] || "").toUpperCase().trim();
-            let mE = (e["MODELO"] || e["VEÍCULO"] || "").toUpperCase().trim();
-            let saida = (e["DATA RETIRADA"] || e["OS RECEPTOR"] || "").trim();
-            return mE === mB && pE.includes(pB) && saida === "";
+    function checkEstoque(peca, mod) {
+        if (!peca || !mod || dadosE.length === 0) return null;
+        return dadosE.find(e => {
+            const pE = (getV(e, "PEÇA") || getV(e, "DESCRIÇÃO DA PEÇA")).toUpperCase();
+            const mE = (getV(e, "MODELO") || getV(e, "VEÍCULO")).toUpperCase();
+            const sai = getV(e, "DATA RETIRADA") || getV(e, "OS RECEPTOR");
+            return mE === mod.toUpperCase() && pE.includes(peca.toUpperCase()) && !sai;
         });
     }
 
     function carregar() {
-        Papa.parse(URL_ESTOQUE + "&t=" + new Date().getTime(), {
+        console.log("Iniciando carregamento...");
+        Papa.parse(URL_ESTOQUE + "&t=" + Date.now(), {
             download: true, header: true, skipEmptyLines: true,
-            complete: function(resE) {
-                dadosEst = resE.data;
-                Papa.parse(URL_SOLICITACOES + "&t=" + new Date().getTime(), {
+            complete: (resE) => {
+                dadosE = resE.data;
+                console.log("Estoque carregado:", dadosE.length, "linhas");
+                
+                Papa.parse(URL_SOLIC + "&t=" + Date.now(), {
                     download: true, header: true, skipEmptyLines: true,
-                    complete: function(resS) {
-                        dadosSol = resS.data;
+                    complete: (resS) => {
+                        dadosS = resS.data;
+                        console.log("Solicitações carregadas:", dadosS.length, "linhas");
+                        if (dadosS.length > 0) console.log("Colunas detectadas:", Object.keys(dadosS[0]));
                         processar();
-                    }
+                    },
+                    error: (err) => alert("Erro ao carregar Planilha de Solicitações: " + err)
                 });
-            }
+            },
+            error: (err) => alert("Erro ao carregar Planilha de Estoque: " + err)
         });
     }
 
     function processar() {
-        const agora = new Date(); 
-        agora.setHours(0,0,0,0);
+        const agora = new Date(); agora.setHours(0,0,0,0);
+        let cA = 0, cP = 0, gH = {}, gA = {}, gP = {}, rank = {};
 
-        let cA = 0, cP = 0, cE = 0;
-        let gH = {}, gA = {}, gP = {}, gC = {}, rank = {};
-
-        dadosSol.forEach(r => {
-            const os = r["OS"] || "S/N";
-            const mod = (r["MODELO"] || r["VEÍCULO"] || "N/A").toUpperCase();
-            const peca = r["DESCRIÇÃO DA PEÇA"] || r["PEÇA"] || "Peça S/N";
-            const dS = converterData(r["DATA SOLICITAÇÃO"] || r["DATA DE SOLICITAÇÃO"]);
-            const dC = converterData(r["DATA DA COMPRA"]);
-            const dEn = converterData(r["DATA DE ENTREGA"]);
-            const sol = r["SOLICITANTE"] || "Outro";
+        dadosS.forEach(r => {
+            const os = getV(r, "OS") || "S/N";
+            const mod = getV(r, "MODELO") || getV(r, "VEÍCULO") || "N/A";
+            const peca = getV(r, "DESCRIÇÃO DA PEÇA") || getV(r, "PEÇA");
+            const dS = parseD(getV(r, "DATA SOLICITAÇÃO") || getV(r, "DATA DE SOLICITAÇÃO"));
+            const dC = parseD(getV(r, "DATA DA COMPRA"));
+            const dE = parseD(getV(getV(r, "DATA DE ENTREGA"), "DATA ENTREGA"));
+            const sol = getV(r, "SOLICITANTE");
             
             let pz = null;
-            for (let k in r) { if (k.toUpperCase().includes("PRAZO")) pz = converterData(r[k]); }
+            for (let k in r) { if (k.toUpperCase().includes("PRAZO")) pz = parseD(r[k]); }
 
-            if (dS && dS.getMonth() === agora.getMonth()) rank[sol] = (rank[sol] || 0) + 1;
+            // Ranking
+            if (sol && dS && dS.getMonth() === agora.getMonth()) { rank[sol] = (rank[sol] || 0) + 1; }
 
-            const item = { desc: peca, forn: r["FORNECEDOR"] || "-", st: "", cl: "", det: "" };
+            const item = { p: peca, st: "", cl: "", det: getV(r, "FORNECEDOR") };
 
-            if (ehHoje(dS) || ehHoje(dC) || ehHoje(dEn)) {
-                if (ehHoje(dEn)) cE++;
+            // 1. Hoje
+            if (isHoje(dS) || isHoje(dC) || isHoje(dE)) {
                 if (!gH[os]) gH[os] = { m: mod, i: [] };
-                item.st = ehHoje(dEn) ? "ENTREGUE" : (ehHoje(dC) ? "COMPRADA" : "PEDIDA");
+                item.st = dE ? "ENTREGUE" : (dC ? "COMPRADA" : "PEDIDA");
                 item.cl = "bg-hoje";
                 gH[os].i.push({...item});
             }
 
-            if (!dEn && pz) {
+            // 2. Atraso/Prazo
+            if (!dE && pz) {
                 pz.setHours(0,0,0,0);
                 if (agora > pz) {
                     cA++; if (!gA[os]) gA[os] = { m: mod, i: [] };
                     item.st = "ATRASADA"; item.cl = "bg-atrasada";
-                    item.det = "Venceu: " + pz.toLocaleDateString();
                     gA[os].i.push({...item});
                 } else {
                     cP++; if (!gP[os]) gP[os] = { m: mod, i: [] };
                     item.st = "NO PRAZO"; item.cl = "bg-prazo";
-                    item.det = "Previsão: " + pz.toLocaleDateString();
                     gP[os].i.push({...item});
                 }
             }
-
-            let val = (r["VALOR"] || "").toLowerCase();
-            if (!val || val.includes("cot")) {
-                if (!gC[os]) gC[os] = { m: mod, i: [] };
-                item.st = "COTAR"; item.cl = "bg-atrasada";
-                gC[os].i.push({...item});
-            }
         });
 
-        desenhar('aba-hoje', gH, "#e30613");
-        desenhar('aba-atraso', gA, "#6b7280");
-        desenhar('aba-prazo', gP, "#15803d");
-        desenhar('aba-cotar', gC, "#1d4ed8");
+        render('aba-hoje', gH, "#e30613");
+        render('aba-atraso', gA, "#6b7280");
+        render('aba-prazo', gP, "#15803d");
 
-        document.getElementById('tot-pecas').innerText = dadosSol.length;
+        document.getElementById('tot-geral').innerText = dadosS.length;
         document.getElementById('tot-atraso').innerText = cA;
         document.getElementById('tot-prazo').innerText = cP;
-        document.getElementById('tot-hoje').innerText = cE;
 
-        let rSorted = Object.entries(rank).sort((a,b) => b[1] - a[1]).slice(0,3);
-        document.querySelector('#ranking-corpo tbody').innerHTML = rSorted.map(i => `<tr><td>${i[0]}</td><td style="text-align:right"><b>${i[1]}</b></td></tr>`).join('');
+        let rS = Object.entries(rank).sort((a,b) => b[1]-a[1]).slice(0,3);
+        document.getElementById('rank-body').innerHTML = rS.map(i => `<tr><td>${i[0]}</td><td style="text-align:right"><b>${i[1]}</b></td></tr>`).join('');
     }
 
-    function desenhar(containerId, grupo, cor) {
-        const div = document.getElementById(containerId);
-        div.innerHTML = "";
+    function render(id, grupo, cor) {
+        const div = document.getElementById(id); div.innerHTML = "";
         for (let os in grupo) {
-            let parts = grupo[os].i.map(i => {
-                let s = verificarStock(i.desc, grupo[os].m);
-                let tag = s ? `<div class="stock-tag">✓ STOCK (${s["NUMERAÇÃO"] || s["NÚMERO"] || "S/L"})</div>` : `<div class="stock-none">✕ FALTA</div>`;
-                return `<div class="part-row"><div class="part-main"><div>${i.desc}</div><div style="font-size:11px;color:var(--text)">Forn: ${i.forn} ${i.det ? ' | '+i.det : ''}</div>${tag}</div><span class="badge ${i.cl}">${i.st}</span></div>`;
+            let html = grupo[os].i.map(i => {
+                const est = checkEstoque(i.p, grupo[os].m);
+                const tag = est ? `<div class="stock-tag">✓ ESTOQUE (${getV(est, "NUMERAÇÃO") || getV(est, "NÚMERO") || "S/L"})</div>` : "";
+                return `<div class="part-item"><div><b>${i.p}</b><br><small>${i.det}</small>${tag}</div><span class="badge ${i.cl}">${i.st}</span></div>`;
             }).join('');
-            div.innerHTML += `<div class="os-card"><div class="os-header" style="border-left:4px solid ${cor}"><div class="os-info">OS ${os} <span class="os-model">${grupo[os].m}</span></div><div style="font-size:10px; color:var(--text)">${grupo[os].i.length} Peça(s)</div></div><div class="os-body">${parts}</div></div>`;
+            div.innerHTML += `<div class="os-card"><div class="os-header" style="border-left:4px solid ${cor}"><span>OS ${os} <b class="os-model">${grupo[os].m}</b></span></div>${html}</div>`;
         }
-        if (Object.keys(grupo).length === 0) div.innerHTML = "<div style='color:var(--text); padding:20px; text-align:center;'>Nenhuma movimentação hoje.</div>";
+        if (Object.keys(grupo).length === 0) div.innerHTML = "<p style='text-align:center; color:var(--text); padding:20px;'>Nenhum dado encontrado.</p>";
     }
 
     carregar();
