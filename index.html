@@ -2,225 +2,243 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Painel de Controle de Peças</title>
+    <title>Painel de Controle de Peças - VRZ</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; margin: 0; background: #0f0f10; color: #fff; }
-        header { background: #000; padding: 22px; font-size: 22px; font-weight: 600; border-bottom: 3px solid #e30613; }
-        .container { padding: 30px; max-width: 1300px; margin: auto; }
-        .cards { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
-        .card { background: #18181b; padding: 20px; border-radius: 16px; flex: 1; min-width: 200px; border: 1px solid #27272a; }
-        .card span { color: #a1a1aa; font-size: 12px; text-transform: uppercase; }
-        .card h2 { margin: 5px 0 0 0; font-size: 28px; }
-        .tabs button { background: #18181b; border: 1px solid #27272a; padding: 10px 15px; margin-right: 8px; color: #fff; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .tabs button:hover { background: #e30613; }
-        .section { background: #18181b; padding: 20px; border-radius: 16px; margin-top: 15px; border: 1px solid #27272a; }
+        :root { --primary: #e30613; --bg: #0f0f10; --card: #18181b; --border: #27272a; --text: #a1a1aa; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: #fff; }
+        header { background: #000; padding: 20px; font-size: 20px; font-weight: 700; border-bottom: 3px solid var(--primary); display: flex; align-items: center; gap: 15px; }
+        .container { padding: 25px; max-width: 1400px; margin: auto; }
+        
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
+        .stat-card span { color: var(--text); font-size: 11px; text-transform: uppercase; }
+        .stat-card h2 { margin: 8px 0 0 0; font-size: 28px; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tabs button { background: var(--card); border: 1px solid var(--border); padding: 12px 18px; color: #fff; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .tabs button:hover, .tabs button.active { background: var(--primary); border-color: var(--primary); }
+
+        .os-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 15px; }
+        .os-card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+        .os-header { background: #111; padding: 12px 15px; border-bottom: 2px solid var(--border); display: flex; justify-content: space-between; }
+        .os-info { font-weight: 700; font-size: 14px; }
+        .os-model { color: var(--primary); font-weight: 800; margin-left: 5px; }
+        .os-body { padding: 15px; }
+        
+        .part-row { padding: 10px 0; border-bottom: 1px solid #27272a; display: flex; justify-content: space-between; align-items: center; }
+        .part-row:last-child { border-bottom: none; }
+        .part-main { font-size: 13px; font-weight: 500; }
+        .part-sub { font-size: 11px; color: var(--text); margin-top: 3px; }
+        
+        .badge { font-size: 9px; padding: 3px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
+        .bg-atrasada { background: #450a0a; color: #f87171; }
+        .bg-prazo { background: #064e3b; color: #34d399; }
+        .bg-hoje { background: #3f3f46; color: #fff; }
+        
+        .stock-tag { background: #16a34a; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; margin-top: 5px; display: inline-block; font-weight: 800; }
+        .stock-none { background: #dc2626; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; margin-top: 5px; display: inline-block; font-weight: 800; }
+
+        #sideMenu { position: fixed; top: 0; left: -280px; width: 250px; height: 100%; background: #000; transition: 0.4s; z-index: 1000; padding: 20px; border-right: 1px solid var(--border); }
+        .menu-item { display: block; padding: 12px; color: #fff; text-decoration: none; border-radius: 6px; }
+        .menu-item:hover { background: var(--primary); }
+
         .hidden { display: none; }
-        .menu-item { display: block; padding: 12px 15px; color: #fff; text-decoration: none; border-radius: 5px; }
-        .menu-item:hover { background: #e30613; }
-        .os-container { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .os-card { background: #111; border: 1px solid #2a2a2e; border-radius: 12px; padding: 15px; }
-        .os-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #27272a; padding-bottom: 8px; margin-bottom: 10px; }
-        .os-id { font-weight: 700; color: #fff; }
-        .os-modelo { color: #e30613; font-weight: 800; margin-left: 5px; }
-        .status { font-size: 10px; padding: 3px 8px; border-radius: 15px; font-weight: 600; text-transform: uppercase; }
-        .status-solicitada { background: #4b5563; }
-        .status-comprada { background: #1d4ed8; }
-        .status-entregue { background: #15803d; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-        td { padding: 5px 0; border-bottom: 1px solid #27272a; }
+        table { width: 100%; font-size: 12px; margin-top: 10px; }
+        td { padding: 4px 0; border-bottom: 1px solid var(--border); }
     </style>
 </head>
-
 <body>
-    <div id="sideMenu" style="position:fixed; top:0; left:-250px; width:250px; height:100%; background:#0b0b0b; transition:0.3s; z-index:999; padding-top: 20px;">
-        <div style="padding: 0 15px 20px 15px; display:flex; justify-content:space-between; align-items:center;">
-            <b style="color:#e30613;">NAVEGAÇÃO</b>
-            <button onclick="toggleMenu()" style="background:none; border:none; color:#fff; font-size:18px; cursor:pointer;">✕</button>
-        </div>
-        <a href="index.html" class="menu-item">Solicitação de Peças</a>
-        <a href="estoque.html" class="menu-item">Estoque</a>
-        <a href="registro.html" class="menu-item">Registro de Peça</a>
+
+<div id="sideMenu">
+    <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
+        <b style="color:var(--primary)">MENU VRZ</b>
+        <button onclick="toggleMenu()" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button>
     </div>
+    <a href="index.html" class="menu-item">Painel de Peças</a>
+    <a href="estoque.html" class="menu-item">Stock Geral</a>
+</div>
 
-    <header style="display:flex; align-items:center; gap:15px;">
-        <button onclick="toggleMenu()" style="background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer;">☰</button>
-        Painel VRZ Peças
-    </header>
+<header>
+    <button onclick="toggleMenu()" style="background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">☰</button>
+    Controle de Reposição - Blindadora
+</header>
 
-    <div class="container">
-        <div class="cards">
-            <div class="card"><span>Peças Totais</span><h2 id="total">0</h2></div>
-            <div class="card"><span>Atrasadas</span><h2 id="atrasadas">0</h2></div>
-            <div class="card"><span>No Prazo</span><h2 id="prazo">0</h2></div>
-            <div class="card"><span>Entregues</span><h2 id="entregues">0</h2></div>
-            <div class="card">
-                <span>Top 3 Solicitantes (Mês)</span>
-                <table><tbody id="rankingSolicitantes"></tbody></table>
-            </div>
-        </div>
-
-        <div class="tabs">
-            <button onclick="mostrar('hojeTab')">Movimento Hoje</button>
-            <button onclick="mostrar('atrasadasTab')">Atrasadas</button>
-            <button onclick="mostrar('prazoTab')">No Prazo</button>
-            <button onclick="mostrar('naoTab')">Cotação</button>
-            <button onclick="mostrar('osTab')">Busca OS</button>
-        </div>
-
-        <div id="hojeTab" class="section"><h3>Movimentações do Dia</h3><div id="tHoje" class="os-container"></div></div>
-        <div id="atrasadasTab" class="section hidden"><h3>Peças com Atraso</h3><div id="tAtrasadas" class="os-container"></div></div>
-        <div id="prazoTab" class="section hidden"><h3>Peças no Prazo</h3><div id="tPrazo" class="os-container"></div></div>
-        <div id="naoTab" class="section hidden"><h3>Aguardando Cotação</h3><div id="tNao" class="os-container"></div></div>
-        
-        <div id="osTab" class="section hidden">
-            <h3>Buscar por OS</h3>
-            <select id="osSelect" onchange="buscarOS()" style="padding:10px; background:#0f0f10; color:#fff; border:1px solid #27272a; border-radius:8px; width:100%; margin-bottom:15px;"></select>
-            <div id="tOS" class="os-container"></div>
+<div class="container">
+    <div class="dashboard">
+        <div class="stat-card"><span>Total Ativas</span><h2 id="total-pecas">0</h2></div>
+        <div class="stat-card"><span>Atrasadas</span><h2 id="total-atrasadas" style="color:#f87171">0</h2></div>
+        <div class="stat-card"><span>No Prazo</span><h2 id="total-prazo" style="color:#34d399">0</h2></div>
+        <div class="stat-card"><span>Entregues Hoje</span><h2 id="total-entregues">0</h2></div>
+        <div class="stat-card">
+            <span>Ranking Solicitantes</span>
+            <table id="ranking-corpo"><tbody></tbody></table>
         </div>
     </div>
 
-    <script>
-        const SOLIC_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=1419345505&single=true&output=csv";
-        
-        // PARA FUNCIONAR: Troque o GID abaixo pelo GID da sua aba de estoque físico
-        const ESTOQUE_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=TROCAR_PELO_GID_DO_ESTOQUE&single=true&output=csv";
+    <div class="tabs">
+        <button onclick="aba('aba-hoje', this)" class="active">Movimento Hoje</button>
+        <button onclick="aba('aba-atraso', this)">Atrasadas</button>
+        <button onclick="aba('aba-prazo', this)">No Prazo</button>
+        <button onclick="aba('aba-cotar', this)">Cotação</button>
+    </div>
 
-        let dSol = [], dEst = [];
+    <div id="aba-hoje" class="tab-content os-grid"></div>
+    <div id="aba-atraso" class="tab-content os-grid hidden"></div>
+    <div id="aba-prazo" class="tab-content os-grid hidden"></div>
+    <div id="aba-cotar" class="tab-content os-grid hidden"></div>
+</div>
 
-        function toggleMenu() { let m = document.getElementById("sideMenu"); m.style.left = m.style.left === "0px" ? "-250px" : "0px"; }
-        function mostrar(id) { document.querySelectorAll(".section").forEach(s => s.classList.add("hidden")); document.getElementById(id).classList.remove("hidden"); }
+<script>
+    const URL_PRINCIPAL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=1419345505&single=true&output=csv";
+    
+    // IMPORTANTE: Para o stock funcionar sem erro, o GID abaixo deve ser o da aba específica de stock.
+    // Se deixar igual ao de cima, o sistema desativa a verificação para não gerar falsos positivos.
+    const URL_ESTOQUE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQXT05p1mxD9mFsRFqzeG4ebXF10jVJra0AncChPKXz6UcrtpYFMZ31qMpcSCKnvQ/pub?gid=TROQUE_PELO_GID_DO_ESTOQUE&single=true&output=csv";
 
-        function formatData(v) {
-            if (!v) return null;
-            let s = v.toString().trim();
-            if (s.includes("/")) { let p = s.split("/"); return new Date(p[2], p[1]-1, p[0]); }
-            if (s.includes("-")) { let p = s.split("-"); return p[0].length === 4 ? new Date(p[0], p[1]-1, p[2]) : new Date(p[2], p[1]-1, p[0]); }
-            return null;
-        }
+    let dadosFull = [], stockFull = [];
 
-        function isToday(d) {
-            const h = new Date(); // Hoje: 01/06/2026
-            return d && d.getDate() === h.getDate() && d.getMonth() === h.getMonth() && d.getFullYear() === h.getFullYear();
-        }
+    function toggleMenu() {
+        let m = document.getElementById("sideMenu");
+        m.style.left = m.style.left === "0px" ? "-280px" : "0px";
+    }
 
-        function checkEstoque(peca, mod) {
-            if (!peca || !mod || dEst.length === 0 || SOLIC_URL === ESTOQUE_URL) return { tem: false };
-            let pB = peca.toUpperCase().trim(), mB = mod.toUpperCase().trim();
-            let achou = dEst.find(e => {
-                let pE = (e["PEÇA"] || e["DESCRIÇÃO DA PEÇA"] || "").toUpperCase().trim();
-                let mE = (e["MODELO"] || e["VEÍCULO"] || "").toUpperCase().trim();
-                let sai = (e["DATA RETIRADA"] || e["OS RECEPTOR"] || "").toString().trim();
-                return mE === mB && pE.includes(pB) && sai === "";
-            });
-            return achou ? { tem: true, loc: achou["NUMERAÇÃO"] || achou["NÚMERO"] || "S/L" } : { tem: false };
-        }
+    function aba(id, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.remove('hidden');
+        btn.classList.add('active');
+    }
 
-        function renderOS(os, modelo, itens, cor) {
-            let itensHtml = itens.map(i => {
-                let est = checkEstoque(i.desc, modelo);
-                let badge = est.tem ? `<span style="color:#22c55e; font-size:9px; margin-left:5px;">[EM ESTOQUE: ${est.loc}]</span>` : "";
-                return `<div style="margin-bottom:8px; border-bottom:1px solid #27272a; padding-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
-                    <div><div style="font-size:13px;"><b>• ${i.desc}</b> ${badge}</div><div style="font-size:11px; color:#a1a1aa;">${i.det || ""}</div></div>
-                    <span class="status ${i.cl}">${i.st}</span>
-                </div>`;
-            }).join('');
-            return `<div class="os-card"><div class="os-top" style="border-left:4px solid ${cor}; padding-left:10px;"><span class="os-id">OS ${os} <span class="os-modelo">${modelo}</span></span></div><div class="os-body">${itensHtml}</div></div>`;
-        }
+    function converterData(v) {
+        if (!v) return null;
+        let s = v.toString().trim();
+        let p = s.includes("/") ? s.split("/") : s.split("-");
+        if (p.length !== 3) return null;
+        return s.includes("/") ? new Date(p[2], p[1]-1, p[0]) : new Date(p[0], p[1]-1, p[2]);
+    }
 
-        function carregar() {
-            Papa.parse(SOLIC_URL + "&t=" + new Date().getTime(), {
-                download: true, header: true, skipEmptyLines: true,
-                complete: function(res) {
-                    dSol = res.data;
-                    // Se o link do estoque for diferente, carregamos ele também
-                    if (ESTOQUE_URL.includes("TROCAR")) {
-                        dEst = []; // Evita erro se o GID não for trocado
+    function ehHoje(d) {
+        const h = new Date(); // Data do sistema: 01/06/2026
+        return d && d.getDate() === h.getDate() && d.getMonth() === h.getMonth() && d.getFullYear() === h.getFullYear();
+    }
+
+    function verificarStock(peca, modelo) {
+        if (!peca || !modelo || URL_PRINCIPAL === URL_ESTOQUE || URL_ESTOQUE.includes("TROQUE")) return null;
+        let pB = peca.toUpperCase().trim(), mB = modelo.toUpperCase().trim();
+        return stockFull.find(e => {
+            let pE = (e["PEÇA"] || e["DESCRIÇÃO DA PEÇA"] || "").toUpperCase().trim();
+            let mE = (e["MODELO"] || e["VEÍCULO"] || "").toUpperCase().trim();
+            let saida = (e["DATA RETIRADA"] || e["OS RECEPTOR"] || "").trim();
+            return mE === mB && pE.includes(pB) && saida === "";
+        });
+    }
+
+    function carregar() {
+        Papa.parse(URL_PRINCIPAL + "&t=" + new Date().getTime(), {
+            download: true, header: true, skipEmptyLines: true,
+            complete: function(res) {
+                dadosFull = res.data;
+                if (!URL_ESTOQUE.includes("TROQUE") && URL_PRINCIPAL !== URL_ESTOQUE) {
+                    Papa.parse(URL_ESTOQUE, { download: true, header: true, complete: function(rE) {
+                        stockFull = rE.data;
                         processar();
-                    } else {
-                        Papa.parse(ESTOQUE_URL, {
-                            download: true, header: true, skipEmptyLines: true,
-                            complete: function(resE) { dEst = resE.data; processar(); }
-                        });
-                    }
-                }
-            });
-        }
+                    }});
+                } else { processar(); }
+            }
+        });
+    }
 
-        function processar() {
-            const h = new Date();
-            let sH=0, cH=0, eH=0, atr=0, prz=0, ent=0;
-            const tH=document.getElementById("tHoje"), tA=document.getElementById("tAtrasadas"), tP=document.getElementById("tPrazo"), tN=document.getElementById("tNao");
-            tH.innerHTML=""; tA.innerHTML=""; tP.innerHTML=""; tN.innerHTML="";
+    function processar() {
+        const agora = new Date(); 
+        agora.setHours(0,0,0,0);
 
-            let gH={}, gA={}, gP={}, gN={}, rank={};
+        let cT = 0, cA = 0, cP = 0, cE = 0;
+        let gH = {}, gA = {}, gP = {}, gC = {}, rank = {};
 
-            dSol.forEach(r => {
-                let os=r["OS"]||"S/N", mod=(r["MODELO"]||r["VEÍCULO"]||"N/A").toUpperCase();
-                let dS=formatData(r["DATA SOLICITAÇÃO"]||r["DATA DE SOLICITAÇÃO"]);
-                let dC=formatData(r["DATA DA COMPRA"]), dE=formatData(r["DATA DE ENTREGA"]);
-                let pE=null; for(let k in r){ if(k.toUpperCase().includes("PRAZO")) pE=formatData(r[k]); }
-
-                // Ranking (Solicitante)
-                let sol = r["SOLICITANTE"];
-                if (sol && dS && dS.getMonth() === h.getMonth()) { rank[sol] = (rank[sol]||0) + 1; }
-
-                // 1. Hoje
-                if (isToday(dS) || isToday(dC) || isToday(dE)) {
-                    if(isToday(dS)) sH++; if(isToday(dC)) cH++; if(isToday(dE)) eH++;
-                    if(!gH[os]) gH[os] = { m: mod, i: [] };
-                    gH[os].i.push({ desc: r["DESCRIÇÃO DA PEÇA"], st: isToday(dE)?"Entregue":(isToday(dC)?"Comprada":"Pedida"), cl: "status-comprada" });
-                }
-
-                // 2. Status Geral
-                if(dE) { ent++; }
-                else if(pE) {
-                    if(h > pE) { atr++; if(!gA[os]) gA[os]={m:mod, i:[]}; gA[os].i.push({desc:r["DESCRIÇÃO DA PEÇA"], st:"ATRASADA", cl:"status-solicitada", det:"Venceu em: "+pE.toLocaleDateString()}); }
-                    else { prz++; if(!gP[os]) gP[os]={m:mod, i:[]}; gP[os].i.push({desc:r["DESCRIÇÃO DA PEÇA"], st:"NO PRAZO", cl:"status-entregue", det:"Chega: "+pE.toLocaleDateString()}); }
-                }
-
-                // 3. Cotação
-                let v = (r["VALOR"]||"").toLowerCase();
-                if(!v || v.includes("cot")) {
-                    if(!gN[os]) gN[os]={m:mod, i:[]};
-                    gN[os].i.push({desc: r["DESCRIÇÃO DA PEÇA"], st: "COTAR", cl: "status-solicitada"});
-                }
-            });
-
-            // Ranking HTML
-            let rTop = Object.entries(rank).sort((a,b)=>b[1]-a[1]).slice(0,3);
-            document.getElementById("rankingSolicitantes").innerHTML = rTop.map(i => `<tr><td>${i[0]}</td><td style="text-align:right;"><b>${i[1]}</b></td></tr>`).join('');
-
-            // Injeção de Cards
-            for(let o in gH) tH.innerHTML += renderOS(o, gH[o].m, gH[o].i, "#e30613");
-            for(let o in gA) tA.innerHTML += renderOS(o, gA[o].m, gA[o].i, "#6b7280");
-            for(let o in gP) tP.innerHTML += renderOS(o, gP[o].m, gP[o].i, "#15803d");
-            for(let o in gN) tN.innerHTML += renderOS(o, gN[o].m, gN[o].i, "#1d4ed8");
-
-            document.getElementById("total").innerText=dSol.length;
-            document.getElementById("atrasadas").innerText=atr;
-            document.getElementById("prazo").innerText=prz;
-            document.getElementById("entregues").innerText=ent;
+        dadosFull.forEach(r => {
+            const os = r["OS"] || "S/N";
+            const mod = (r["MODELO"] || r["VEÍCULO"] || "N/A").toUpperCase();
+            const peca = r["DESCRIÇÃO DA PEÇA"] || r["PEÇA"] || "Peça S/N";
+            const dS = converterData(r["DATA SOLICITAÇÃO"] || r["DATA DE SOLICITAÇÃO"]);
+            const dC = converterData(r["DATA DA COMPRA"]);
+            const dEn = converterData(r["DATA DE ENTREGA"]);
+            const sol = r["SOLICITANTE"] || "Outro";
             
-            popularOS();
-        }
+            let pz = null;
+            for (let k in r) { if (k.toUpperCase().includes("PRAZO")) pz = converterData(r[k]); }
 
-        function popularOS() {
-            let s = document.getElementById("osSelect");
-            let l = [...new Set(dSol.map(r => r["OS"]))].filter(Boolean).sort();
-            s.innerHTML = "<option value=''>ESCOLHA UMA OS</option>" + l.map(o => `<option value="${o}">${o}</option>`).join('');
-        }
+            if (dS && dS.getMonth() === agora.getMonth()) rank[sol] = (rank[sol] || 0) + 1;
 
-        function buscarOS() {
-            let os=document.getElementById("osSelect").value, t=document.getElementById("tOS"); t.innerHTML="";
-            let f = dSol.filter(r => r["OS"] == os);
-            if(f.length>0) t.innerHTML = renderOS(os, f[0]["MODELO"]||"N/A", f.map(i=>({desc:i["DESCRIÇÃO DA PEÇA"], st:"INFO", cl:"status-comprada"})), "#fff");
-        }
+            const item = { desc: peca, forn: r["FORNECEDOR"] || "-", st: "", cl: "", det: "" };
 
-        carregar();
-        setInterval(carregar, 30000);
-    </script>
+            // 1. Movimento Hoje
+            if (ehHoje(dS) || ehHoje(dC) || ehHoje(dEn)) {
+                if (ehHoje(dEn)) cE++;
+                if (!gH[os]) gH[os] = { m: mod, i: [] };
+                item.st = ehHoje(dEn) ? "ENTREGUE" : (ehHoje(dC) ? "COMPRADA" : "PEDIDA");
+                item.cl = "bg-hoje";
+                gH[os].i.push({...item});
+            }
+
+            // 2. Atraso e Prazo
+            if (!dEn && pz) {
+                cT++; pz.setHours(0,0,0,0);
+                if (agora > pz) {
+                    cA++; if (!gA[os]) gA[os] = { m: mod, i: [] };
+                    item.st = "ATRASADA"; item.cl = "bg-atrasada";
+                    item.det = "Venceu: " + pz.toLocaleDateString();
+                    gA[os].i.push({...item});
+                } else {
+                    cP++; if (!gP[os]) gP[os] = { m: mod, i: [] };
+                    item.st = "NO PRAZO"; item.cl = "bg-prazo";
+                    item.det = "Previsão: " + pz.toLocaleDateString();
+                    gP[os].i.push({...item});
+                }
+            }
+
+            // 3. Cotação
+            let val = (r["VALOR"] || "").toLowerCase();
+            if (!val || val.includes("cot")) {
+                if (!gC[os]) gC[os] = { m: mod, i: [] };
+                item.st = "COTAR"; item.cl = "bg-atrasada";
+                gC[os].i.push({...item});
+            }
+        });
+
+        desenhar('aba-hoje', gH, "#e30613");
+        desenhar('aba-atraso', gA, "#6b7280");
+        desenhar('aba-prazo', gP, "#15803d");
+        desenhar('aba-cotar', gC, "#1d4ed8");
+
+        document.getElementById('total-pecas').innerText = cT;
+        document.getElementById('total-atrasadas').innerText = cA;
+        document.getElementById('total-prazo').innerText = cP;
+        document.getElementById('total-entregues').innerText = cE;
+
+        let rFinal = Object.entries(rank).sort((a,b) => b[1] - a[1]).slice(0,3);
+        document.querySelector('#ranking-corpo tbody').innerHTML = rFinal.map(i => `<tr><td>${i[0]}</td><td style="text-align:right"><b>${i[1]}</b></td></tr>`).join('');
+    }
+
+    function desenhar(containerId, grupo, cor) {
+        const div = document.getElementById(containerId);
+        div.innerHTML = "";
+        for (let os in grupo) {
+            let parts = grupo[os].i.map(i => {
+                let s = verificarStock(i.desc, grupo[os].m);
+                let tag = s ? `<div class="stock-tag">✓ STOCK (${s["NUMERAÇÃO"] || s["NÚMERO"] || "S/L"})</div>` : `<div class="stock-none">✕ FALTA</div>`;
+                let mostrar = (URL_PRINCIPAL !== URL_ESTOQUE && !URL_ESTOQUE.includes("TROQUE")) ? tag : "";
+                return `<div class="part-row"><div class="part-main"><div>${i.desc}</div><div class="part-sub">Forn: ${i.forn} ${i.det ? ' | '+i.det : ''}</div>${mostrar}</div><span class="badge ${i.cl}">${i.st}</span></div>`;
+            }).join('');
+            div.innerHTML += `<div class="os-card"><div class="os-header" style="border-left:4px solid ${cor}"><div class="os-info">OS ${os} <span class="os-model">${grupo[os].m}</span></div><div style="font-size:10px; color:var(--text)">${grupo[os].i.length} Peça(s)</div></div><div class="os-body">${parts}</div></div>`;
+        }
+        if (Object.keys(grupo).length === 0) div.innerHTML = "<div style='color:var(--text); padding:20px;'>Sem dados para esta categoria.</div>";
+    }
+
+    carregar();
+    setInterval(carregar, 30000);
+</script>
 </body>
 </html>
