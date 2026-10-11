@@ -1,0 +1,243 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head><body>
+<canvas id="c"></canvas>
+<script>
+const P = new URLSearchParams(location.search);
+const W = +(P.get('w') || 1080), H = +(P.get('h') || 1920);
+const c = document.getElementById('c'); c.width = W; c.height = H;
+const g = c.getContext('2d');
+const U = Math.min(W, H) / 1080;           // unidade de escala
+const CX = W / 2, CY = H / 2;
+const BPM = 120, BEAT = 60 / BPM;
+
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = t => 1 - Math.pow(1 - t, 4);
+const easeInOut = t => t < .5 ? 8 * t ** 4 : 1 - Math.pow(-2 * t + 2, 4) / 2;
+const FONT = '"Inter Display","Inter",Helvetica,Arial,sans-serif';
+
+// ---------- moletom (caixa 400x440, centro x=200) ----------
+const body = new Path2D('M140 90 L70 115 C45 125 35 150 30 180 L10 360 L55 368 L80 215 L85 420 L315 420 L320 215 L345 368 L390 360 L370 180 C365 150 355 125 330 115 L260 90 Z');
+const hood = new Path2D('M140 94 C128 18 272 18 260 94 C238 114 162 114 140 94 Z');
+const hoodIn = new Path2D('M166 96 C166 52 234 52 234 96 C220 104 180 104 166 96 Z');
+const pocket = new Path2D('M118 300 L282 300 L300 388 L100 388 Z');
+const details = new Path2D('M182 104 L176 172 M218 104 L224 172 M85 400 L315 400 M10 345 L55 352 M390 345 L345 352 M200 300 L200 388');
+const ALL = [body, hood, hoodIn, pocket, details];
+
+function hoodie(x, y, s, o = {}) {
+  const { turn = 0, draw = 1, fill = 1, color = 'studio', rim = 1, logo = 0 } = o;
+  g.save();
+  g.translate(x, y);
+  const sx = 0.82 + 0.18 * Math.cos(turn);
+  g.scale(s * sx, s);
+  g.translate(-200, -220);
+  g.lineJoin = 'round'; g.lineCap = 'round';
+  if (fill > 0) {
+    g.globalAlpha = fill;
+    if (color === 'studio') {
+      const lx = 200 + 260 * Math.sin(turn);
+      const gr = g.createLinearGradient(lx - 260, 0, lx + 260, 440);
+      gr.addColorStop(0, '#08080a'); gr.addColorStop(.5, '#2a2a30'); gr.addColorStop(1, '#0b0b0d');
+      g.fillStyle = gr;
+    } else g.fillStyle = color;
+    g.fill(body); g.fill(hood);
+    g.fillStyle = color === 'studio' ? '#000' : 'rgba(0,0,0,.55)';
+    g.fill(hoodIn);
+    g.globalAlpha = 1;
+  }
+  if (draw > 0) {
+    const L = 2600;
+    g.setLineDash([L * draw, L]);
+    g.strokeStyle = color === 'studio' ? `rgba(255,255,255,${0.75 * rim})` : 'rgba(255,255,255,.18)';
+    g.lineWidth = 2.2 / (s * sx) * U * 1.2;
+    g.shadowColor = 'rgba(255,255,255,.9)';
+    g.shadowBlur = color === 'studio' ? 24 * U : 0;
+    for (const p of ALL) g.stroke(p);
+    g.setLineDash([]); g.shadowBlur = 0;
+  }
+  if (logo > 0) {
+    g.globalAlpha = logo;
+    g.fillStyle = '#fff';
+    g.font = `800 26px ${FONT}`;
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.letterSpacing = '3px';
+    g.fillText('SWAYV', 200, 190);
+    g.letterSpacing = '0px';
+    g.globalAlpha = 1;
+  }
+  g.restore();
+}
+
+function text(str, x, y, size, o = {}) {
+  const { weight = 900, color = '#fff', alpha = 1, align = 'center', spacing = 0, base = 'middle' } = o;
+  g.save();
+  g.globalAlpha = alpha;
+  g.fillStyle = color;
+  g.font = `${weight} ${size * U}px ${FONT}`;
+  g.textAlign = align; g.textBaseline = base;
+  g.letterSpacing = `${spacing * U}px`;
+  g.fillText(str, x, y);
+  g.restore();
+}
+
+function vignette(a = .65) {
+  const r = g.createRadialGradient(CX, CY, Math.min(W, H) * .3, CX, CY, Math.max(W, H) * .75);
+  r.addColorStop(0, 'rgba(0,0,0,0)'); r.addColorStop(1, `rgba(0,0,0,${a})`);
+  g.fillStyle = r; g.fillRect(0, 0, W, H);
+}
+
+// grão de filme determinístico
+const grain = document.createElement('canvas'); grain.width = 256; grain.height = 256;
+{ const gg = grain.getContext('2d'); const id = gg.createImageData(256, 256);
+  let s = 7; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < id.data.length; i += 4) { const v = rnd() * 255; id.data[i] = id.data[i+1] = id.data[i+2] = v; id.data[i+3] = 255; }
+  gg.putImageData(id, 0, 0); }
+function filmGrain(t, a = .05) {
+  g.save(); g.globalAlpha = a; g.globalCompositeOperation = 'overlay';
+  const f = Math.floor(t * 24);
+  g.translate(-(f * 73 % 256), -(f * 151 % 256));
+  g.fillStyle = g.createPattern(grain, 'repeat'); g.fillRect(0, 0, W + 256, H + 256);
+  g.restore();
+}
+
+// ---------- cenas ----------
+// 0.0–3.5  trama do tecido (macro) -> afasta
+function sceneWeave(t) {
+  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  const p = prog(t, 0, 3.5);
+  const zoom = lerp(3.2, 1.0, easeInOut(p));
+  const lightX = lerp(W * .15, W * .85, p), lightY = H * .45;
+  g.save();
+  g.translate(CX, CY); g.rotate(-0.35); g.scale(zoom, zoom); g.translate(-CX, -CY);
+  const gap = 18 * U, n = Math.ceil(Math.max(W, H) * 1.6 / gap);
+  g.lineCap = 'round';
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = -n; i < n; i++) {
+      g.beginPath();
+      for (let k = -n; k <= n; k += 1) {
+        const along = k * gap, across = i * gap;
+        const wob = Math.sin(k * Math.PI + (pass ? 0 : Math.PI)) * 3.2 * U + Math.sin(along * .004 + t * 1.6 + i * .3) * 2 * U;
+        const px = pass ? CX + across + wob : CX + along;
+        const py = pass ? CY + along : CY + across + wob;
+        k === -n ? g.moveTo(px, py) : g.lineTo(px, py);
+      }
+      const mx = pass ? CX + i * gap : CX, my = pass ? CY : CY + i * gap;
+      const d = Math.hypot(mx - lightX, my - lightY) / (Math.max(W, H) * .6);
+      const lum = clamp(1 - d) ** 1.6;
+      g.strokeStyle = `rgba(${200 + 40 * pass},${200 + 40 * pass},${215 + 30 * pass},${0.05 + 0.6 * lum})`;
+      g.lineWidth = 7 * U;
+      g.stroke();
+    }
+  }
+  g.restore();
+  vignette(.9);
+  const a = prog(t, 1.0, 1.6) * (1 - prog(t, 3.0, 3.4));
+  text('Começa no fio.', CX, H * .82, 64, { weight: 500, color: '#d8d8de', alpha: a });
+}
+
+// 3.5–7.0  o moletom se desenha e gira
+function sceneForm(t) {
+  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  const lt = t - 3.5;
+  const floor = g.createRadialGradient(CX, H * .78, 0, CX, H * .78, W * .7);
+  floor.addColorStop(0, 'rgba(60,60,70,.35)'); floor.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = floor; g.fillRect(0, 0, W, H);
+  const draw = easeInOut(prog(lt, 0, 1.8));
+  const fill = easeOut(prog(lt, 1.5, 2.4));
+  const s = lerp(2.1, 1.85, easeOut(prog(lt, 0, 3.5))) * U;
+  hoodie(CX, H * .46 + Math.sin(lt * 1.4) * 10 * U, s, { draw, fill, turn: lt * 0.9 - 0.6 });
+  const a = prog(lt, 1.6, 2.2) * (1 - prog(lt, 3.2, 3.5));
+  text('Vira peça.', CX, H * .82, 64, { weight: 500, color: '#d8d8de', alpha: a });
+  vignette(.5);
+}
+
+// 7.0–9.0  tipografia cinética no beat
+function sceneType(t) {
+  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  const lt = t - 7.0;
+  const words = ['Feito', 'pra', 'rua.'];
+  const i = Math.min(2, Math.floor(lt / BEAT));
+  const wt = lt - i * BEAT;
+  const sc = lerp(1.08, 1, easeOut(clamp(wt / .35)));
+  g.save(); g.translate(CX, CY); g.scale(sc, sc);
+  text(words[i], 0, 0, W > H ? 300 : 260, { weight: 900, spacing: -8 });
+  g.restore();
+}
+
+// 9.0–13.0  silhueta em cor chapada, corte a cada beat
+const COLORS = ['#ff3d7f', '#2f4bff', '#ff6a1a', '#d9ff3f', '#00c2a8', '#ff3d7f', '#f1f1f1', '#2f4bff'];
+function sceneColor(t) {
+  const lt = t - 9.0;
+  const i = Math.min(7, Math.floor(lt / BEAT));
+  const wt = lt - i * BEAT;
+  g.fillStyle = COLORS[i]; g.fillRect(0, 0, W, H);
+  // palavra gigante vazada ao fundo
+  g.save(); g.globalAlpha = .12; g.translate(CX, CY); g.rotate(i % 2 ? 0 : -Math.PI / 2);
+  text('SWAYV', 0, 0, W > H ? 380 : 420, { weight: 900, color: '#000', spacing: -10 });
+  g.restore();
+  const bounce = Math.abs(Math.sin((wt / BEAT) * Math.PI)) * 18 * U;
+  const close = i % 2 === 1;
+  const s = (close ? 4.2 : 1.9) * U;
+  const y = close ? H * .5 + 30 * s : H * .5;
+  hoodie(CX + (close ? 0 : (i % 4 === 2 ? -60 : 60) * U), y - bounce, s,
+    { draw: 1, fill: 1, color: '#050505', turn: close ? 0 : (i * .7), logo: 1 });
+  // flash no corte
+  const flash = 1 - clamp(wt / .08);
+  if (flash > 0) { g.fillStyle = `rgba(255,255,255,${flash * .35})`; g.fillRect(0, 0, W, H); }
+}
+
+// 13.0–15.5  lista estilo keynote
+function sceneList(t) {
+  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  const lt = t - 13.0;
+  const items = ['Peso.', 'Corte.', 'Atitude.'];
+  const size = W > H ? 160 : 215, lh = size * 1.12 * U;
+  const x0 = W * (W > H ? .3 : .12), y0 = CY - lh;
+  const active = Math.min(2, Math.floor(lt / (BEAT * 1.5)));
+  // a palavra mais recente fica branca, as anteriores apagam
+  items.forEach((w, k) => {
+    const appear = prog(lt, k * BEAT * 1.5, k * BEAT * 1.5 + .25);
+    if (appear <= 0) return;
+    const dy = (1 - easeOut(appear)) * 40 * U;
+    text(w, x0, y0 + k * lh + dy, size, { weight: 900, align: 'left', spacing: -5,
+      color: k === active ? '#ffffff' : '#3d3d44', alpha: appear });
+  });
+}
+
+// 15.5–20.0  assinatura
+function sceneEnd(t) {
+  g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+  const lt = t - 15.5;
+  const glow = g.createRadialGradient(CX, H * .4, 0, CX, H * .4, Math.max(W, H) * .5);
+  glow.addColorStop(0, 'rgba(70,70,82,.45)'); glow.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = glow; g.fillRect(0, 0, W, H);
+  const rise = easeOut(prog(lt, 0, 1.2));
+  const hy = (W > H ? H * .40 : H * .38) + (1 - rise) * 120 * U + Math.sin(lt * 1.3) * 12 * U;
+  hoodie(CX, hy, (W > H ? 1.15 : 1.55) * U, { draw: 1, fill: rise, rim: rise, turn: lt * .8, logo: prog(lt, 1.0, 1.6) });
+  const wa = easeOut(prog(lt, 1.2, 2.0));
+  const wy = W > H ? H * .80 : H * .72;
+  text('SWAYV', CX, wy, W > H ? 140 : 170, { weight: 900, spacing: lerp(40, -4, wa), alpha: wa });
+  const sa = prog(lt, 2.1, 2.7);
+  text('Drop em breve  ·  @swayv.co', CX, wy + (W > H ? 110 : 140) * U, 40, { weight: 500, color: '#9a9aa4', alpha: sa, spacing: 1 });
+  vignette(.55);
+  const out = prog(lt, 4.2, 4.5);
+  if (out > 0) { g.fillStyle = `rgba(0,0,0,${out})`; g.fillRect(0, 0, W, H); }
+}
+
+window.DURATION = 20.0;
+window.render = function (t) {
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  if (t < 3.5) sceneWeave(t);
+  else if (t < 7.0) sceneForm(t);
+  else if (t < 9.0) sceneType(t);
+  else if (t < 13.0) sceneColor(t);
+  else if (t < 15.5) sceneList(t);
+  else sceneEnd(t);
+  filmGrain(t, t >= 9 && t < 13 ? .03 : .06);
+};
+window.ready = document.fonts.load(`900 100px "Inter Display"`).then(() => document.fonts.load(`500 100px "Inter Display"`)).then(() => { render(0); return true; });
+</script>
+</body></html>
